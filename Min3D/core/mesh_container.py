@@ -1,0 +1,121 @@
+## dependencies
+import numpy as np
+import open3d as o3d
+from overrides import overrides
+from typing import NoReturn, Union
+
+## custom dependencies
+from Min3D.core.alpha_shape_helper import AlphaShapeHelper
+from Min3D.core.geometry_container import GeometryContainer
+
+## main class implementation - Cell membrane extraction tool
+class MeshContainer(GeometryContainer):
+    def __init__(self, geometry: o3d.geometry.TriangleMesh, **kwargs) -> NoReturn:
+        super().__init__(geometry=geometry, **kwargs)
+        
+    def __post_init__(self) -> NoReturn:
+        pass
+    
+    # %% Classmethods
+    @classmethod
+    @overrides
+    def from_ply(cls, file_path: str, **kwargs) -> "MeshContainer":
+        geometry = o3d.io.read_triangle_mesh(file_path)
+        return cls(geometry=geometry, **kwargs)
+    
+    @classmethod
+    @overrides
+    def from_o3d(cls, geometry: o3d.geometry.TriangleMesh, **kwargs) -> "MeshContainer":
+        return cls(geometry=geometry, **kwargs)
+    
+    # %% Utility functions    
+    def get_vertex(self, ind: int) -> np.ndarray:
+        return np.asarray(self.geometry.vertices)[ind]
+    
+    def get_vertices(self) -> np.ndarray:
+        return np.asarray(self.geometry.vertices)
+    
+    def get_surface_area(self) -> float:
+        return self.geometry.get_surface_area()
+    
+    def get_volume(self) -> float:
+        if not AlphaShapeHelper.check_watertight(self.geometry):
+            raise ValueError("Mesh must be watertight to compute volume.")
+        return self.geometry.get_volume()
+
+    # %% Transformations
+    def decimate_mesh(self, target_number_of_triangles: int, inplace: bool = True) -> Union["MeshContainer", NoReturn]:
+        decimated_mesh = self.geometry.simplify_quadric_decimation(target_number_of_triangles=target_number_of_triangles)
+        
+        if self.config["verbose"]:
+            print(f"Original mesh had {len(self.geometry.vertices)} vertices and {len(self.geometry.triangles)} triangles.")
+            print(f"Decimated (Simplified) mesh has {len(decimated_mesh.vertices)} vertices and {len(decimated_mesh.triangles)} triangles.")
+        
+        if inplace:
+            self.geometry = decimated_mesh
+            return self
+        else:
+            return MeshContainer.from_o3d(decimated_mesh)
+
+    def subdivide_mesh(self, number_of_iterations: int, inplace: bool = True) -> Union["MeshContainer", NoReturn]:
+        subdivided_mesh = self.geometry.subdivide_midpoint(number_of_iterations=number_of_iterations)
+        
+        if self.config["verbose"]:
+            print(f"Original mesh had {len(self.geometry.vertices)} vertices and {len(self.geometry.triangles)} triangles.")
+            print(f"Subdivided mesh has {len(subdivided_mesh.vertices)} vertices and {len(subdivided_mesh.triangles)} triangles.")
+        
+        if inplace:
+            self.geometry = subdivided_mesh
+            return self
+        else:
+            return MeshContainer.from_o3d(subdivided_mesh)
+    
+    # %% Alpha shapes
+    def check_watertight(self) -> bool:
+        return AlphaShapeHelper.check_watertight(self.geometry)
+    
+    def clean_mesh(self, inplace: bool = True) -> Union["MeshContainer", NoReturn]:
+        cleaned_mesh = AlphaShapeHelper.clean_mesh(self.geometry)
+        if inplace:
+            self.geometry = cleaned_mesh
+            return self
+        else:
+            return MeshContainer.from_o3d(cleaned_mesh)
+
+    def cluster_mesh(self, cluster_by:str = 'area', inplace: bool = True) -> Union["MeshContainer", NoReturn]:
+        clustered_mesh = AlphaShapeHelper.cluster_mesh(self.geometry, cluster_by = cluster_by)
+        if inplace:
+            self.geometry = clustered_mesh
+            return self
+        else:
+            return MeshContainer.from_o3d(clustered_mesh)
+
+    def repair_mesh(self, inplace: bool = True) -> Union["MeshContainer", NoReturn]:
+        repaired_mesh = AlphaShapeHelper.repair_mesh(self.geometry)
+        if inplace:
+            self.geometry = repaired_mesh
+            return self
+        else:
+            return MeshContainer.from_o3d(repaired_mesh)
+
+    def make_watertight(self, cluster_by:str = 'area', inplace: bool = True) -> Union["MeshContainer", NoReturn]:
+        watertight_mesh = AlphaShapeHelper.make_watertight(self.geometry, cluster_by = cluster_by)
+        if inplace:
+            self.geometry = watertight_mesh
+            return self
+        else:
+            return MeshContainer.from_o3d(watertight_mesh)
+
+    # %% IO
+    @overrides
+    def save(self, file_path: str) -> NoReturn:
+        o3d.io.write_triangle_mesh(file_path, self.geometry)
+        
+    @overrides
+    def load(self, file_path: str) -> NoReturn:
+        self.geometry = o3d.io.read_triangle_mesh(file_path)
+        
+    # %% Dunder methods
+    @overrides
+    def __repr__(self) -> "MeshContainer":
+        return f"MeshContainer with {len(self.geometry.vertices)} vertices and {len(self.geometry.triangles)} triangles.\nThe mesh is {'watertight' if self.check_watertight() else 'not watertight'}."
