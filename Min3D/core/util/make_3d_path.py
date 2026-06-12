@@ -20,7 +20,7 @@ def make_3d_path(
     scale_factor: float = 1.0,
     magnitude: Union[str, float] = "auto",
 ) -> Path3D:
-    ## generate 3D visualization with opne 3d linesets
+    ## generate 3D visualization with open 3d linesets
 
     # convert path to numpy array if it's a list of points
     if isinstance(path, list):

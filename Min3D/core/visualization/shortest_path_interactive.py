@@ -16,7 +16,7 @@ __all__ = ["shortest_path_interactive"]
 def shortest_path_interactive(
     graph: SurfaceGraph, start_node: int, end_node: int
 ) -> NoReturn:
-    ## generate 3D visualization with opne 3d linesets
+    ## generate 3D visualization with open 3d linesets
     # select base wireframe for visualization
     wireframe = copy(graph.edges)
     path = graph.get_shortest_path(start_node, end_node)

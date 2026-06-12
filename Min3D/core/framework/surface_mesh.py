@@ -1,8 +1,15 @@
 ## dependencies
+import os
+import sys
 import numpy as np
 import open3d as o3d
 from overrides import overrides
 from typing import NoReturn, Union
+
+if sys.platform.startswith("win"):
+    from PyFileDialogue import PyFileDialogue as pyfd
+else:
+    pyfd = None  # placeholder for non-Windows systems, as tkinter is not supported on Unix-based systems
 
 ## custom dependencies
 from Min3D.core.containers.geometry_base import GeometryBase
@@ -20,7 +27,18 @@ class SurfaceMesh(GeometryBase):
     # %% Classmethods
     @classmethod
     @overrides
-    def from_ply(cls, file_path: str, **kwargs) -> "SurfaceMesh":
+    def from_ply(cls, file_path: Union[str, None] = None, **kwargs) -> "SurfaceMesh":
+        if file_path is None or not os.path.isfile(file_path):
+            if pyfd is None:
+                raise RuntimeError(
+                    "File dialog is only supported on Windows. Please provide a file path."
+                )
+            file_path = pyfd().askFILE(
+                title="Select Surface Mesh PLY File", filetypes=[("PLY files", "*.ply")]
+            )
+            if file_path is None:
+                raise ValueError("No file selected. Please provide a valid file path.")
+
         geometry = o3d.io.read_triangle_mesh(file_path)
         return cls(geometry=geometry, **kwargs)
 
@@ -151,11 +169,36 @@ class SurfaceMesh(GeometryBase):
 
     # %% IO
     @overrides
-    def save(self, file_path: str) -> NoReturn:
+    def save(self, file_path: Union[str, None] = None) -> NoReturn:
+        if file_path is None or not os.path.isdir(os.path.dirname(file_path)):
+            if pyfd is None:
+                raise RuntimeError(
+                    "File dialog is only supported on Windows. Please provide a file path."
+                )
+            file_path = pyfd().askSAVEASFILE(
+                defaultextension=".ply",
+                initialfile="*.ply",
+                title="Select Surface Mesh PLY File",
+                filetypes=[("PLY files", "*.ply")],
+            )
+            if file_path is None:
+                raise ValueError("No file selected. Please provide a valid file path.")
+
         o3d.io.write_triangle_mesh(file_path, self.geometry)
 
     @overrides
-    def load(self, file_path: str) -> NoReturn:
+    def load(self, file_path: Union[str, None] = None) -> NoReturn:
+        if file_path is None or not os.path.isfile(file_path):
+            if pyfd is None:
+                raise RuntimeError(
+                    "File dialog is only supported on Windows. Please provide a file path."
+                )
+            file_path = pyfd().askFILE(
+                title="Select Surface Mesh PLY File", filetypes=[("PLY files", "*.ply")]
+            )
+            if file_path is None:
+                raise ValueError("No file selected. Please provide a valid file path.")
+
         self.geometry = o3d.io.read_triangle_mesh(file_path)
 
     # %% Dunder methods

@@ -44,7 +44,7 @@ class GeometryBase(ABC):
     # %% Classmethods
     @classmethod
     @abstractmethod
-    def from_ply(cls, file_path: str, **kwargs) -> "GeometryBase":
+    def from_ply(cls, file_path: Union[str, None] = None, **kwargs) -> "GeometryBase":
         pass
 
     @classmethod
@@ -240,11 +240,11 @@ class GeometryBase(ABC):
 
     # %% IO
     @abstractmethod
-    def save(self, file_path: str) -> NoReturn:
+    def save(self, file_path: Union[str, None] = None) -> NoReturn:
         pass
 
     @abstractmethod
-    def load(self, file_path: str) -> NoReturn:
+    def load(self, file_path: Union[str, None] = None) -> NoReturn:
         pass
 
     # %% Dunder methods

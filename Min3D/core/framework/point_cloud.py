@@ -1,8 +1,16 @@
 ## dependencies
+import sys
+import os
 import numpy as np
 import open3d as o3d
 from overrides import overrides
 import matplotlib.pyplot as plt
+from PltStyler import PltStyler
+
+if sys.platform.startswith("win"):
+    from PyFileDialogue import PyFileDialogue as pyfd
+else:
+    pyfd = None  # placeholder for non-Windows systems, as tkinter is not supported on Unix-based systems
 
 from typing import Any, NoReturn, Tuple, Union
 
@@ -18,7 +26,18 @@ class PointCloud(GeometryBase):
     # %% Classmethods
     @classmethod
     @overrides
-    def from_ply(cls, file_path: str, **kwargs) -> "PointCloud":
+    def from_ply(cls, file_path: Union[str, None] = None, **kwargs) -> "PointCloud":
+        if file_path is None or not os.path.isfile(file_path):
+            if pyfd is None:
+                raise RuntimeError(
+                    "File dialog is only supported on Windows. Please provide a file path."
+                )
+            file_path = pyfd().askFILE(
+                title="Select Point Cloud PLY File", filetypes=[("PLY files", "*.ply")]
+            )
+            if file_path is None:
+                raise ValueError("No file selected. Please provide a valid file path.")
+
         point_cloud = o3d.io.read_point_cloud(file_path)
         return cls(geometry=point_cloud, **kwargs)
 
@@ -171,20 +190,37 @@ class PointCloud(GeometryBase):
 
     # %% Measurement plots
     def plot_spread_of_points_around_center(
-        self, return_fig: bool = False
+        self, bins = 100, dpi: int = 100, style: str = "bright", return_fig: bool = False
     ) -> Union[Tuple[plt.Figure, plt.Axes], NoReturn]:
         center_of_mass = self.get_center_of_mass()
         distance_to_center_of_mass = np.linalg.norm(
             np.asarray(self.geometry.points) - center_of_mass, axis=1
         )
 
+        # apply a stylesheet for better aesthetics
+        PltStyler().set_stylesheet(style).set_font(size=12).apply()
+        default_boxplot_params = PltStyler().get_default_parameters("boxplot")
+        default_boxplot_params.update({"showmeans": False, "vert": False})
+
         # histogram of distances to center of mass
-        fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=100)
-        ax.hist(distance_to_center_of_mass, bins=100, color="blue", alpha=0.7)
+        fig, ax = plt.subplots(1, 1, figsize=(8, 2), dpi=dpi)
+        ax.boxplot(
+            distance_to_center_of_mass,
+            **default_boxplot_params | {"boxprops": {"facecolor": "lightcoral", "color": "black"}},
+        )
+        ax.scatter(
+            np.mean(distance_to_center_of_mass),
+            1,
+            color="black",
+            marker="x",
+            s=100,
+            zorder=3,
+            label="Mean: {:.2e} m".format(np.mean(distance_to_center_of_mass)),
+        )
 
         # layout
-        ax.set_xlabel("d_Center (nm)")
-        ax.set_ylabel("Frequency")
+        ax.set_xlabel("Distance to Center [m]")
+        ax.legend(loc="upper right", fontsize=10)
 
         fig.tight_layout()
 
@@ -192,17 +228,20 @@ class PointCloud(GeometryBase):
             return fig, ax
 
     def plot_2d_histogram_of_points(
-        self, return_fig: bool = False
+        self, bins = 50, dpi = 100, cmap = "inferno", style = "bright", return_fig: bool = False
     ) -> Union[Tuple[plt.Figure, plt.Axes], NoReturn]:
         points = np.asarray(self.geometry.points)
         center_of_mass = self.get_center_of_mass()
         axes_key = {0: "X", 1: "Y", 2: "Z"}
 
+        # apply a stylesheet for better aesthetics
+        PltStyler().set_stylesheet(style).set_font(size=12).apply()
+
         # 2d histogram of points in XY plane
-        fig, axs = plt.subplots(1, 3, figsize=(15, 5), dpi=100)
+        fig, axs = plt.subplots(1, 3, figsize=(15, 5), dpi=dpi)
 
         for i, ind in enumerate([(0, 1), (0, 2), (1, 2)]):
-            axs[i].hist2d(points[:, ind[0]], points[:, ind[1]], bins=50, cmap="inferno")
+            axs[i].hist2d(points[:, ind[0]], points[:, ind[1]], bins=bins, cmap=cmap)
             axs[i].scatter(
                 center_of_mass[ind[0]],
                 center_of_mass[ind[1]],
@@ -231,26 +270,17 @@ class PointCloud(GeometryBase):
         self,
         *args: Union["PointCloud", o3d.geometry.PointCloud],
         x_lim: Tuple[float, float] = None,
+        dpi: int = 100,
+        style: str = "bright",
         return_fig: bool = False,
     ) -> Union[Tuple[plt.Figure, plt.Axes], NoReturn]:
         ## Step 1.3 compute nearest neighbor distances and plot boxplots
         # the dNN of the poisson disk sampling should be more consistent (narrower histogram) than the uniform sampling, which may have a wider spread of dNN values.
         # as we derive the wireframe from the poisson disk sampling, the dNN distribution matches the distribution of edge lengths in the wireframe, which is desirable for surface reconstruction.
 
-        default_boxplot_params = {
-            "widths": 0.5,
-            "vert": False,
-            "patch_artist": True,
-            "medianprops": dict(color="black", lw=1.5),
-            "meanprops": dict(zorder=3, marker="D", ms=10, color="black"),
-            "whiskerprops": dict(color="black", lw=2),
-            "capprops": dict(color="black", lw=2),
-            "showfliers": True,
-            "showbox": True,
-            "showcaps": True,
-            "showmeans": False,
-            "zorder": 0,
-        }
+        PltStyler().set_stylesheet(style).set_font(size=12).apply()
+        default_boxplot_params = PltStyler().get_default_parameters("boxplot")
+        default_boxplot_params.update({"showmeans": False, "vert": False})
 
         colors = ["lightblue", "lightcoral", "lightgreen", "lightyellow", "lightgray"]
 
@@ -271,7 +301,7 @@ class PointCloud(GeometryBase):
 
         # build the figure and axes
         fig, axs = plt.subplots(
-            len(args), 1, figsize=(10, 2.5 * len(args)), dpi=100, sharex=True
+            len(args), 1, figsize=(8, 2 * len(args)), dpi=dpi, sharex=True
         )
         if len(args) == 1:
             axs = [axs]  # make it iterable
@@ -280,8 +310,7 @@ class PointCloud(GeometryBase):
         for i, arg in enumerate(args):
             axs[i].boxplot(
                 dNN[i],
-                boxprops=dict(facecolor=colors[i], color="black", lw=2),
-                **default_boxplot_params,
+                **default_boxplot_params | {"boxprops": {"facecolor": colors[i % len(colors)], "color": "black"}},
             )
             axs[i].scatter(
                 np.mean(dNN[i]),
@@ -295,14 +324,12 @@ class PointCloud(GeometryBase):
 
         # layout
         for i in range(len(args)):
-            axs[i].set_ylabel("Frequency")
             axs[i].legend(loc="upper right", fontsize="small")
             if x_lim is not None:
                 axs[i].set_xlim(x_lim)
 
         # layout of the lower panel
         axs[-1].set_xlabel("dNN [m]")
-        axs[-1].set_ylabel("Frequency")
         if x_lim is not None:
             axs[-1].set_xlim(x_lim)
 
@@ -367,11 +394,36 @@ class PointCloud(GeometryBase):
 
     # %% IO
     @overrides
-    def save(self, file_path: str) -> NoReturn:
+    def save(self, file_path: Union[str, None] = None) -> NoReturn:
+        if file_path is None or not os.path.isdir(os.path.dirname(file_path)):
+            if pyfd is None:
+                raise RuntimeError(
+                    "File dialog is only supported on Windows. Please provide a file path."
+                )
+            file_path = pyfd().askSAVEASFILE(
+                defaultextension=".ply",
+                initialfile="*.ply",
+                title="Select Point Cloud PLY File",
+                filetypes=[("PLY files", "*.ply")],
+            )
+            if file_path is None:
+                raise ValueError("No file selected. Please provide a valid file path.")
+
         o3d.io.write_point_cloud(file_path, self.geometry)
 
     @overrides
-    def load(self, file_path: str) -> NoReturn:
+    def load(self, file_path: Union[str, None] = None) -> NoReturn:
+        if file_path is None or not os.path.isfile(file_path):
+            if pyfd is None:
+                raise RuntimeError(
+                    "File dialog is only supported on Windows. Please provide a file path."
+                )
+            file_path = pyfd().askFILE(
+                title="Select Point Cloud PLY File", filetypes=[("PLY files", "*.ply")]
+            )
+            if file_path is None:
+                raise ValueError("No file selected. Please provide a valid file path.")
+
         self.geometry = o3d.io.read_point_cloud(file_path)
 
     # %% Helper functions
