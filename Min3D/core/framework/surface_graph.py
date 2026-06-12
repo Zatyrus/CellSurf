@@ -46,9 +46,7 @@ class SurfaceGraph:
     def __post_init__(self) -> NoReturn:
         # check that vertices and edges are of the correct types
         if not isinstance(self.vertices, PointCloud):
-            raise TypeError(
-                f"Vertices must be a PointCloud, got {type(self.vertices)}"
-            )
+            raise TypeError(f"Vertices must be a PointCloud, got {type(self.vertices)}")
         if not isinstance(self.edges, (SurfaceWireframe, UniqueSurfaceWireframe)):
             raise TypeError(
                 f"Edges must be a SurfaceWireframe or UniqueSurfaceWireframe, got {type(self.edges)}"
