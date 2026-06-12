@@ -7,7 +7,7 @@ from overrides import overrides
 from typing import NoReturn, Union
 
 if sys.platform.startswith("win"):
-    from PyFileDialogue import PyFileDialogue as pyfd
+    import PyFileDialogue as pyfd
 else:
     pyfd = None  # placeholder for non-Windows systems, as tkinter is not supported on Unix-based systems
 
@@ -33,7 +33,7 @@ class SurfaceMesh(GeometryBase):
                 raise RuntimeError(
                     "File dialog is only supported on Windows. Please provide a file path."
                 )
-            file_path = pyfd().askFILE(
+            file_path = pyfd.call_file(
                 title="Select Surface Mesh PLY File", filetypes=[("PLY files", "*.ply")]
             )
             if file_path is None:
@@ -175,7 +175,7 @@ class SurfaceMesh(GeometryBase):
                 raise RuntimeError(
                     "File dialog is only supported on Windows. Please provide a file path."
                 )
-            file_path = pyfd().askSAVEASFILE(
+            file_path = pyfd.call_save_as_file(
                 defaultextension=".ply",
                 initialfile="*.ply",
                 title="Select Surface Mesh PLY File",
@@ -193,7 +193,7 @@ class SurfaceMesh(GeometryBase):
                 raise RuntimeError(
                     "File dialog is only supported on Windows. Please provide a file path."
                 )
-            file_path = pyfd().askFILE(
+            file_path = pyfd.call_file(
                 title="Select Surface Mesh PLY File", filetypes=[("PLY files", "*.ply")]
             )
             if file_path is None:
