@@ -1,9 +1,8 @@
 ## dependencies
 import numpy as np
 import open3d as o3d
-from copy import deepcopy
 import matplotlib.colors
-import matplotlib.cm
+from copy import deepcopy
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, Union
 
