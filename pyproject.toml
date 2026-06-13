@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "min3d"
+version = "0.0.1"
+description = "A framework implementation of 3D methods for data representation, surface reconstruction and geodesic distance measures. Also includes visualizers and convenience methods to interact with 3D datasets."
+authors = ["Bela Vogler <bela.vogler@uni-jena.de>"]
+license = "GPL-3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "<3.15,>=3.12"
+numpy = "^2.4.6"
+matplotlib = "^3.11.0"
+tqdm = "^4.68.2"
+open3d = "^0.19.0"
+pltstyler = "^0.0.7"
+pyfiledialogue = "^0.0.3"
+overrides = "^7.7.0"
+rustworkx = "^0.17.1"
+pymeshfix = "^0.18.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
