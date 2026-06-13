@@ -51,7 +51,7 @@ class PointCloud(GeometryBase):
         return cls(geometry=geometry, **kwargs)
 
     @classmethod
-    def from_table(cls, table: np.ndarray, **kwargs) -> "PointCloud":
+    def from_numpy(cls, table: np.ndarray, **kwargs) -> "PointCloud":
         geometry = o3d.geometry.PointCloud()
         geometry.points = o3d.utility.Vector3dVector(table)
         return cls(geometry=geometry, **kwargs)
