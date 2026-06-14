@@ -36,11 +36,14 @@ class GeometryTransformationTool:
     # %% Surface reconstruction - Point Cloud to Mesh
     @staticmethod
     def convex_hull_from(point_cloud: PointCloud) -> SurfaceMesh:
-        hull, _ = point_cloud.geometry.compute_convex_hull()
-        return SurfaceMesh.from_o3d(hull)
+        hull, ind = point_cloud.geometry.compute_convex_hull()
+        mesh = SurfaceMesh.from_o3d(hull)
+        mesh.colors = o3d.utility.Vector3dVector(np.asarray(point_cloud.colors)[ind])
+        return mesh
 
     @staticmethod
     def concave_hull_from(point_cloud: PointCloud, alpha: float) -> SurfaceMesh:
+        # colors are automatically preserved in the alpha shape creation process, so we can just create the mesh and return it
         concave_hull = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(
             point_cloud.geometry, alpha
         )
