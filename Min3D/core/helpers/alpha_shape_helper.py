@@ -102,12 +102,16 @@ class AlphaShapeHelper:
             for i in range(max_iter):
                 # generate new alpha shape mesh and check if it is watertight
                 mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_alpha_shape(
-                    pointCloud, alpha
+                    pointCloud, alpha=alpha
                 )
                 if AlphaShapeHelper.check_watertight(mesh):
                     print("New mesh is watertight.")
                     print("Returning new mesh with alpha = {:.2e}.".format(alpha))
-                    return mesh, alpha
+
+                    pbar.colour = "green"
+                    pbar.update(max_iter - i)
+
+                    return mesh
 
                 # attempt to repair the mesh. then clean it and select the largest one. then check if it is watertight
                 mesh = AlphaShapeHelper.repair_mesh(
@@ -118,7 +122,11 @@ class AlphaShapeHelper:
                 if AlphaShapeHelper.check_watertight(mesh):
                     print("Repaired mesh is watertight.")
                     print("Returning repaired mesh with alpha = {:.2e}.".format(alpha))
-                    return mesh, alpha
+
+                    pbar.colour = "green"
+                    pbar.update(max_iter - i)
+
+                    return mesh
 
                 else:
                     alpha *= 1 + alpha_increase_percentage

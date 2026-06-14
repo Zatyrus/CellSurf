@@ -57,7 +57,7 @@ class GeometryTransformationTool:
         watertight_mesh = AlphaShapeHelper.iterate_until_watertight(
             point_cloud.geometry, alpha, cluster_by, max_iter, alpha_increase_percentage
         )
-        return watertight_mesh
+        return SurfaceMesh.from_o3d(watertight_mesh)
 
     @staticmethod
     def ball_pivoting_mesh_from(
