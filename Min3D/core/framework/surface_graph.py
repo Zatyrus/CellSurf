@@ -111,9 +111,8 @@ class SurfaceGraph:
         cls, wireframe: Union[SurfaceWireframe, UniqueSurfaceWireframe], **kwargs
     ) -> "SurfaceGraph":
         # make vertices
-        vertices, edges = GeometryTransformationTool.unpack_to_vertices_and_edges(
-            wireframe
-        )
+        edges = UniqueSurfaceWireframe.from_wireframe(wireframe)
+        vertices = PointCloud.from_numpy(edges.get_points())
 
         # make graph
         graph = rx.PyGraph()
@@ -122,9 +121,7 @@ class SurfaceGraph:
         graph.add_nodes_from(range(len(vertices.points)))
 
         # populate graph with edges
-        edge_length_LUT = GeometryTransformationTool.edge_length_LUT_from(
-            UniqueSurfaceWireframe.from_wireframe(edges)
-        )
+        edge_length_LUT = GeometryTransformationTool.edge_length_LUT_from(edges)
         graph.add_edges_from(
             [
                 (line[0], line[1], edge_length_LUT[(line[0], line[1])])
