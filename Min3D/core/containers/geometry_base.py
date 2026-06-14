@@ -260,13 +260,13 @@ class GeometryBase(ABC):
 
     # %% Properties
     @property
+    @abstractmethod
     def colors(self) -> Union[np.ndarray, o3d.utility.Vector3dVector]:
-        return self.geometry.colors
+        pass
 
     @colors.setter
+    @abstractmethod
     def colors(
         self, color_array: Union[np.ndarray, o3d.utility.Vector3dVector]
     ) -> None:
-        if isinstance(color_array, np.ndarray):
-            color_array = o3d.utility.Vector3dVector(color_array)
-        self.geometry.colors = color_array
+        pass

@@ -220,3 +220,17 @@ class SurfaceMesh(GeometryBase):
     @property
     def triangles(self) -> np.ndarray:
         return self.geometry.triangles
+
+    @property
+    @overrides
+    def colors(self) -> Union[np.ndarray, o3d.utility.Vector3dVector]:
+        return self.geometry.vertex_colors
+
+    @colors.setter
+    @overrides
+    def colors(
+        self, color_array: Union[np.ndarray, o3d.utility.Vector3dVector]
+    ) -> None:
+        if isinstance(color_array, np.ndarray):
+            color_array = o3d.utility.Vector3dVector(color_array)
+        self.geometry.vertex_colors = color_array

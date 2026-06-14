@@ -111,9 +111,8 @@ class SurfaceGraph:
         cls, wireframe: Union[SurfaceWireframe, UniqueSurfaceWireframe], **kwargs
     ) -> "SurfaceGraph":
         # make vertices
-        vertices, edges = GeometryTransformationTool.unpack_to_vertices_and_edges(
-            wireframe
-        )
+        edges = UniqueSurfaceWireframe.from_wireframe(wireframe)
+        vertices = PointCloud.from_numpy(edges.get_points())
 
         # make graph
         graph = rx.PyGraph()
@@ -122,9 +121,7 @@ class SurfaceGraph:
         graph.add_nodes_from(range(len(vertices.points)))
 
         # populate graph with edges
-        edge_length_LUT = GeometryTransformationTool.edge_length_LUT_from(
-            UniqueSurfaceWireframe.from_wireframe(edges)
-        )
+        edge_length_LUT = GeometryTransformationTool.edge_length_LUT_from(edges)
         graph.add_edges_from(
             [
                 (line[0], line[1], edge_length_LUT[(line[0], line[1])])
@@ -458,23 +455,21 @@ class SurfaceGraph:
             raise ValueError(
                 "Edge length LUT must be computed before checking consistency."
             )
+
         # check that all edges in the graph are present in the edge_length_LUT and vice versa
-        for edge in self.graph.edges():
-            if (
-                edge not in self.edge_length_LUT.keys()
-                and (edge[1], edge[0]) not in self.edge_length_LUT.keys()
-            ):
-                raise ValueError(
-                    f"Edge {edge} is present in the graph but not in the edge length LUT."
-                )
-        for edge in self.edge_length_LUT.keys():
-            if (
-                edge not in self.graph.edges()
-                and (edge[1], edge[0]) not in self.graph.edges()
-            ):
-                raise ValueError(
-                    f"Edge {edge} is present in the edge length LUT but not in the graph."
-                )
+        # create frozensets of the edge keys in the LUT and the graph edges for efficient comparison
+        # frozensets are used to ensure that the order of edges does not affect the comparison
+        frozen_edge_keys = frozenset(self.edge_length_LUT.keys())
+        frozen_graph_edges = frozenset(self.graph.edge_list())
+
+        # check for consistency
+        if frozen_edge_keys != frozen_graph_edges:
+            missing_in_LUT = frozen_graph_edges - frozen_edge_keys
+            missing_in_graph = frozen_edge_keys - frozen_graph_edges
+            raise ValueError(
+                f"Edge length LUT is inconsistent with graph edges.\nMissing in LUT: {missing_in_LUT}\nMissing in graph: {missing_in_graph}"
+            )
+
         return True
 
     # %% Dunder methods

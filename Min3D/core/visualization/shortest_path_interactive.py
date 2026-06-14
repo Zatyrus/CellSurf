@@ -12,27 +12,25 @@ __all__ = ["shortest_path_interactive"]
 
 
 # %% Visualization functions
-def shortest_path_interactive(
-    graph: SurfaceGraph, start_node: int, end_node: int
-) -> None:
+def shortest_path_interactive(graph: SurfaceGraph, source: int, target: int) -> None:
     ## generate 3D visualization with open 3d linesets
     # select base wireframe for visualization
     wireframe = copy(graph.edges)
-    path = graph.get_shortest_path(start_node, end_node)
+    path = graph.get_shortest_path(source, target)
     approximate_scaler = __estimate_magnitude_scaler__(graph, scale_adjust=-2)
 
     # create lineset for the path
     path_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
     path_lineset = GeoShapeHelper.generate_lineset_from_edges(
-        graph.vertices, path_edges
+        graph.vertices.points, path_edges
     )
 
     # create spheres for the start and end nodes
     start_sphere = GeoShapeHelper.generate_sphere_on_point(
-        wireframe.points[start_node], radius=3 * approximate_scaler, color=[0, 1, 0]
+        wireframe.points[source], radius=3 * approximate_scaler, color=[0, 1, 0]
     )  # green for start node
     end_sphere = GeoShapeHelper.generate_sphere_on_point(
-        wireframe.points[end_node], radius=3 * approximate_scaler, color=[0, 0, 1]
+        wireframe.points[target], radius=3 * approximate_scaler, color=[0, 0, 1]
     )  # blue for end node
 
     # add smaller spheres for the intermediate nodes in the path
@@ -55,7 +53,7 @@ def shortest_path_interactive(
     o3d.visualization.draw_geometries(  # type: ignore
         [path_lineset, wireframe.geometry, start_sphere, end_sphere]
         + intermediate_nodes,
-        window_name=f"Shortest Path from Node {start_node} to Node {end_node}",
+        window_name=f"Shortest Path from Node {source} to Node {target}",
     )
 
 

@@ -111,3 +111,17 @@ class SurfaceWireframe(GeometryBase):
     @property
     def lines(self) -> np.ndarray:
         return self.geometry.lines
+
+    @property
+    @overrides
+    def colors(self) -> Union[np.ndarray, o3d.utility.Vector3dVector]:
+        return self.geometry.colors
+
+    @colors.setter
+    @overrides
+    def colors(
+        self, color_array: Union[np.ndarray, o3d.utility.Vector3dVector]
+    ) -> None:
+        if isinstance(color_array, np.ndarray):
+            color_array = o3d.utility.Vector3dVector(color_array)
+        self.geometry.colors = color_array
