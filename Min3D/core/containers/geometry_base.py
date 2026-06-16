@@ -6,6 +6,8 @@ from copy import deepcopy
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, Union
 
+__all_ = ["GeometryBase"]
+
 
 ## main class implementation - Cell membrane extraction tool
 class GeometryBase(ABC):

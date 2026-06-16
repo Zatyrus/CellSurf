@@ -21,6 +21,9 @@ from typing import Any, List, NoReturn, Tuple, Union
 from Min3D.core.containers.geometry_base import GeometryBase
 
 
+__all__ = ["PointCloud"]
+
+
 ## main class implementation - Cell membrane extraction tool
 class PointCloud(GeometryBase):
     def __init__(self, geometry: o3d.geometry.PointCloud, **kwargs) -> None:

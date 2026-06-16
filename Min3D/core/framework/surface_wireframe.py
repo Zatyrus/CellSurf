@@ -15,6 +15,9 @@ else:
 from Min3D.core.containers.geometry_base import GeometryBase
 
 
+__all__ = ["SurfaceWireframe"]
+
+
 ## main class implementation - Cell membrane extraction tool
 class SurfaceWireframe(GeometryBase):
     def __init__(self, geometry: o3d.geometry.LineSet, **kwargs) -> None:

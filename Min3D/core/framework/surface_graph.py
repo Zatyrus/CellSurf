@@ -24,6 +24,9 @@ from Min3D.core.framework.unique_surface_wireframe import UniqueSurfaceWireframe
 from Min3D.core.util.geometry_transformation_tool import GeometryTransformationTool
 
 
+__all__ = ["SurfaceGraph"]
+
+
 # class implementation
 class SurfaceGraph:
     # base data

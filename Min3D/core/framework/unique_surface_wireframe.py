@@ -15,6 +15,9 @@ else:
 from Min3D.core.framework.surface_wireframe import SurfaceWireframe
 
 
+__all__ = ["UniqueSurfaceWireframe"]
+
+
 # implementation - this is a direct copy of the wireframe, but with unique edges only (i.e. no duplicate edges)
 class UniqueSurfaceWireframe(SurfaceWireframe):
     def __init__(self, geometry: o3d.geometry.LineSet, **kwargs) -> None:

@@ -16,6 +16,9 @@ from Min3D.core.containers.geometry_base import GeometryBase
 from Min3D.core.helpers.alpha_shape_helper import AlphaShapeHelper
 
 
+__all__ = ["SurfaceMesh"]
+
+
 ## main class implementation - Cell membrane extraction tool
 class SurfaceMesh(GeometryBase):
     def __init__(self, geometry: o3d.geometry.TriangleMesh, **kwargs) -> None:
