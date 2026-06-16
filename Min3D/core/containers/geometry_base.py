@@ -4,7 +4,9 @@ import open3d as o3d
 import matplotlib.colors
 from copy import deepcopy
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Union
+from typing import Dict, Tuple, Union, Optional
+
+__all_ = ["GeometryBase"]
 
 
 ## main class implementation - Cell membrane extraction tool
@@ -44,7 +46,7 @@ class GeometryBase(ABC):
     # %% Classmethods
     @classmethod
     @abstractmethod
-    def from_ply(cls, file_path: Union[str, None] = None, **kwargs) -> "GeometryBase":
+    def from_ply(cls, file_path: Optional[str] = None, **kwargs) -> "GeometryBase":
         pass
 
     @classmethod
@@ -80,7 +82,7 @@ class GeometryBase(ABC):
     # %% Data Manipulation
     def translate(
         self, translation_vector: np.ndarray, inplace: bool = True
-    ) -> Union["GeometryBase", None]:
+    ) -> Optional["GeometryBase"]:
         if inplace:
             self.geometry.translate(translation_vector)
         else:
@@ -92,7 +94,7 @@ class GeometryBase(ABC):
         scale_factor: float,
         center: Union[np.ndarray, bool] = True,
         inplace: bool = True,
-    ) -> Union["GeometryBase", None]:
+    ) -> Optional["GeometryBase"]:
         if center is None:
             center = self.get_center_of_mass()
         if inplace:
@@ -101,7 +103,7 @@ class GeometryBase(ABC):
             new_geometry = deepcopy(self.geometry).scale(scale_factor, center)
             return GeometryBase.from_o3d(new_geometry)
 
-    def center_on_origin(self, inplace: bool = True) -> Union["GeometryBase", None]:
+    def center_on_origin(self, inplace: bool = True) -> Optional["GeometryBase"]:
         center_of_mass = self.get_center_of_mass()
         translation_vector = -center_of_mass
 
@@ -124,7 +126,7 @@ class GeometryBase(ABC):
 
     def visual_editor(
         self, inplace: bool = True, full_screen: bool = False
-    ) -> Union["GeometryBase", None]:
+    ) -> Optional["GeometryBase"]:
         # build the visualizer object and add the point cloud to it
         vis = o3d.visualization.VisualizerWithEditing()  # type: ignore
         # run the visualizer
@@ -242,11 +244,11 @@ class GeometryBase(ABC):
 
     # %% IO
     @abstractmethod
-    def save(self, file_path: Union[str, None] = None) -> None:
+    def save(self, file_path: Optional[str] = None) -> None:
         pass
 
     @abstractmethod
-    def load(self, file_path: Union[str, None] = None) -> None:
+    def load(self, file_path: Optional[str] = None) -> None:
         pass
 
     # %% Dunder methods

@@ -15,10 +15,13 @@ if sys.platform.startswith("win"):
 else:
     pyfd = None  # placeholder for non-Windows systems, as tkinter is not supported on Unix-based systems
 
-from typing import Any, List, NoReturn, Tuple, Union
+from typing import Any, List, Tuple, Union, Optional
 
 ## custom dependencies
 from Min3D.core.containers.geometry_base import GeometryBase
+
+
+__all__ = ["PointCloud"]
 
 
 ## main class implementation - Cell membrane extraction tool
@@ -29,7 +32,7 @@ class PointCloud(GeometryBase):
     # %% Classmethods
     @classmethod
     @overrides
-    def from_ply(cls, file_path: Union[str, None] = None, **kwargs) -> "PointCloud":
+    def from_ply(cls, file_path: Optional[str] = None, **kwargs) -> "PointCloud":
         if file_path is None or not os.path.isfile(file_path):
             if pyfd is None:
                 raise RuntimeError(
@@ -126,7 +129,7 @@ class PointCloud(GeometryBase):
         scale_factors: Tuple[float, float, float],
         center: Union[np.ndarray, bool] = True,
         inplace: bool = True,
-    ) -> Union["PointCloud", None]:
+    ) -> Optional["PointCloud"]:
         if isinstance(center, bool) and center:
             self.center_on_origin(inplace=True)
         if isinstance(center, np.ndarray):
@@ -144,7 +147,7 @@ class PointCloud(GeometryBase):
 
     def downsample_pcd_uniformly(
         self, every_k_point: float, inplace: bool = True
-    ) -> Union["PointCloud", NoReturn]:
+    ) -> Optional["PointCloud"]:
         downsampled_pcd = self.geometry.uniform_down_sample(
             input=self.geometry, every_k_points=every_k_point
         )
@@ -158,7 +161,7 @@ class PointCloud(GeometryBase):
         std_ratio: float = 2.0,
         inplace: bool = True,
         display_result: bool = True,
-    ) -> Union["PointCloud", None]:
+    ) -> Optional["PointCloud"]:
         # call the open3d function for statistical outlier removal
         cl, ind = self.geometry.remove_statistical_outlier(
             nb_neighbors=nb_points, std_ratio=std_ratio
@@ -179,7 +182,7 @@ class PointCloud(GeometryBase):
         radius: float = 0.05,
         inplace: bool = True,
         display_result: bool = True,
-    ) -> Union["PointCloud", None]:
+    ) -> Optional["PointCloud"]:
         # call the open3d function for radius outlier removal
         cl, ind = self.geometry.remove_radius_outlier(
             nb_points=nb_points, radius=radius
@@ -197,7 +200,7 @@ class PointCloud(GeometryBase):
     # %% Measurement plots
     def plot_spread_of_points_around_center(
         self, bins=100, dpi: int = 100, style: str = "bright", return_fig: bool = False
-    ) -> Union[Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes], None]:
+    ) -> Optional[Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]]:
         center_of_mass = self.get_center_of_mass()
         distance_to_center_of_mass = np.linalg.norm(
             np.asarray(self.geometry.points) - center_of_mass, axis=1
@@ -236,7 +239,7 @@ class PointCloud(GeometryBase):
 
     def plot_2d_histogram_of_points(
         self, bins=50, dpi=100, cmap="inferno", style="bright", return_fig: bool = False
-    ) -> Union[Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes], None]:
+    ) -> Optional[Tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]]:
         points = np.asarray(self.geometry.points)
         center_of_mass = self.get_center_of_mass()
         axes_key = {0: "X", 1: "Y", 2: "Z"}
@@ -276,11 +279,11 @@ class PointCloud(GeometryBase):
     def plot_dNN_for(
         self,
         *args: Union["PointCloud", o3d.geometry.PointCloud],
-        x_lim: Union[Tuple[float, float], None] = None,
+        x_lim: Optional[Tuple[float, float]] = None,
         dpi: int = 100,
         style: str = "bright",
         return_fig: bool = False,
-    ) -> Union[Tuple[matplotlib.figure.Figure, List[matplotlib.axes.Axes]], None]:
+    ) -> Optional[Tuple[matplotlib.figure.Figure, List[matplotlib.axes.Axes]]]:
         ## Step 1.3 compute nearest neighbor distances and plot boxplots
         # the dNN of the poisson disk sampling should be more consistent (narrower histogram) than the uniform sampling, which may have a wider spread of dNN values.
         # as we derive the wireframe from the poisson disk sampling, the dNN distribution matches the distribution of edge lengths in the wireframe, which is desirable for surface reconstruction.
@@ -406,7 +409,7 @@ class PointCloud(GeometryBase):
 
     # %% IO
     @overrides
-    def save(self, file_path: Union[str, None] = None) -> None:
+    def save(self, file_path: Optional[str] = None) -> None:
         if file_path is None or not os.path.isdir(os.path.dirname(file_path)):
             if pyfd is None:
                 raise RuntimeError(
@@ -424,7 +427,7 @@ class PointCloud(GeometryBase):
         o3d.io.write_point_cloud(file_path, self.geometry)
 
     @overrides
-    def load(self, file_path: Union[str, None] = None) -> None:
+    def load(self, file_path: Optional[str] = None) -> None:
         if file_path is None or not os.path.isfile(file_path):
             if pyfd is None:
                 raise RuntimeError(

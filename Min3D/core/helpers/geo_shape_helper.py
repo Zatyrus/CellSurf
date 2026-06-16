@@ -7,10 +7,6 @@ class GeoShapeHelper:
     """A class to help with the generation of geometrical shapes in open3d."""
 
     def __init__(self) -> None:
-        # run post init
-        self.__post_init__()
-
-    def __post_init__(self) -> None:
         pass
 
     @staticmethod

@@ -3,7 +3,7 @@ import numpy as np
 import rustworkx as rx
 from rustworkx.visualization import mpl_draw, graphviz_draw
 
-from typing import Callable, Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union, Optional
 
 # tqdm for progress bars - automatically selects the right version for notebooks vs. terminal
 from IPython.core.getipython import get_ipython
@@ -24,6 +24,9 @@ from Min3D.core.framework.unique_surface_wireframe import UniqueSurfaceWireframe
 from Min3D.core.util.geometry_transformation_tool import GeometryTransformationTool
 
 
+__all__ = ["SurfaceGraph"]
+
+
 # class implementation
 class SurfaceGraph:
     # base data
@@ -34,26 +37,28 @@ class SurfaceGraph:
     graph: rx.PyGraph
 
     # lookup tables for fast access to edge lengths and distances between nodes
-    edge_length_LUT: Union[Dict[Tuple[int, int], float], None]
+    edge_length_LUT: Optional[Dict[Tuple[int, int], float]]
 
     # optional - can be computed on the fly if not provided, but can be useful to precompute for faster access
-    distance_LUT: Union[Dict[int, Dict[int, float]], rx.AllPairsPathLengthMapping, None]
-    path_LUT: Union[Dict[int, Dict[int, List[int]]], rx.AllPairsPathMapping, None]
-    distance_matrix: Union[np.ndarray, None]  # table of node distances for fast access
+    distance_LUT: Optional[
+        Union[Dict[int, Dict[int, float]], rx.AllPairsPathLengthMapping]
+    ]
+    path_LUT: Optional[Union[Dict[int, Dict[int, List[int]]], rx.AllPairsPathMapping]]
+    distance_matrix: Optional[np.ndarray]  # table of node distances for fast access
 
     def __init__(
         self,
         vertices: PointCloud,
         edges: Union[SurfaceWireframe, UniqueSurfaceWireframe],
         graph: rx.PyGraph,
-        edge_length_LUT: Union[Dict[Tuple[int, int], float], None] = None,
-        distance_LUT: Union[
-            Dict[int, Dict[int, float]], rx.AllPairsPathLengthMapping, None
+        edge_length_LUT: Optional[Dict[Tuple[int, int], float]] = None,
+        distance_LUT: Optional[
+            Union[Dict[int, Dict[int, float]], rx.AllPairsPathLengthMapping]
         ] = None,
-        path_LUT: Union[
-            Dict[int, Dict[int, List[int]]], rx.AllPairsPathMapping, None
+        path_LUT: Optional[
+            Union[Dict[int, Dict[int, List[int]]], rx.AllPairsPathMapping]
         ] = None,
-        distance_matrix: Union[np.ndarray, None] = None,
+        distance_matrix: Optional[np.ndarray] = None,
         **kwargs,
     ) -> None:
         self.vertices = vertices
@@ -152,20 +157,20 @@ class SurfaceGraph:
     def get_edges(self) -> Union[SurfaceWireframe, UniqueSurfaceWireframe]:
         return self.edges
 
-    def get_graph(self) -> Union[rx.PyGraph, None]:
+    def get_graph(self) -> Optional[rx.PyGraph]:
         return self.graph
 
-    def get_edge_length_LUT(self) -> Union[Dict[Tuple[int, int], float], None]:
+    def get_edge_length_LUT(self) -> Optional[Dict[Tuple[int, int], float]]:
         return self.edge_length_LUT
 
     def get_distance_LUT(
         self,
-    ) -> Union[Dict[int, Dict[int, float]], rx.AllPairsPathLengthMapping, None]:
+    ) -> Optional[Union[Dict[int, Dict[int, float]], rx.AllPairsPathLengthMapping]]:
         return self.distance_LUT
 
     def get_path_LUT(
         self,
-    ) -> Union[Dict[int, Dict[int, List[int]]], rx.AllPairsPathMapping, None]:
+    ) -> Optional[Union[Dict[int, Dict[int, List[int]]], rx.AllPairsPathMapping]]:
         return self.path_LUT
 
     # %% Path and distance queries
@@ -360,8 +365,8 @@ class SurfaceGraph:
 
     def build_distance_matrix(
         self,
-        distance_LUT: Union[
-            Dict[int, Dict[int, float]], rx.AllPairsPathLengthMapping, None
+        distance_LUT: Optional[
+            Union[Dict[int, Dict[int, float]], rx.AllPairsPathLengthMapping]
         ] = None,
         silent: bool = False,
     ) -> np.ndarray:

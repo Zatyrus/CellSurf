@@ -2,7 +2,6 @@
 import matplotlib
 import numpy as np
 import open3d as o3d
-import matplotlib.cm
 import matplotlib.colors
 
 from typing import List, Union

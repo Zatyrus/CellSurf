@@ -24,6 +24,9 @@ from Min3D.core.framework.surface_wireframe import SurfaceWireframe
 from Min3D.core.framework.unique_surface_wireframe import UniqueSurfaceWireframe
 
 
+__all_ = ["GeometryTransformationTool"]
+
+
 ## main class implementation - Cell membrane extraction tool
 class GeometryTransformationTool:
     def __init__(self) -> None:

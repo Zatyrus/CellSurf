@@ -1626,13 +1626,13 @@ tests = ["pytest"]
 
 [[package]]
 name = "pyfiledialogue"
-version = "0.0.3"
+version = "0.0.4"
 description = "A small collection of quality-of-life methods using Python tkinter to interface with the windows file explorer."
 optional = false
 python-versions = "<4.0,>=3.12"
 files = [
-    {file = "pyfiledialogue-0.0.3-py3-none-any.whl", hash = "sha256:71108b22f1a82008749f6e967ff1b71dbcaede6e6c0b2043958c2b0e9ee027b7"},
-    {file = "pyfiledialogue-0.0.3.tar.gz", hash = "sha256:85f978c2a73e3dc29f9725cd6f3fc2f49a983f3876915562d109634bcf48aa1a"},
+    {file = "pyfiledialogue-0.0.4-py3-none-any.whl", hash = "sha256:3b1eb77257140dbf4fc591e2a7bff0ee6b77da939944fbfa03adcc9dc715825c"},
+    {file = "pyfiledialogue-0.0.4.tar.gz", hash = "sha256:5b090d1717c0d8f5a43f1fe1ce8f10abcbd98f61311915a3fcfad37aeed8223e"},
 ]
 
 [[package]]
@@ -2358,4 +2358,4 @@ type = ["pytest-mypy (>=1.0.1)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "<3.15,>=3.12"
-content-hash = "b75ff36d2e320631362af46ac66aa4246ab4a675a540e76424ec53934c17f226"
+content-hash = "6e48a40b283013c5d182d26f470184223ca2a09065b1536ac2b82b32560a5be0"

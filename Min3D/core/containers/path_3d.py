@@ -2,6 +2,8 @@ import open3d as o3d
 from typing import List
 from dataclasses import dataclass
 
+__all__ = ["Path3D"]
+
 
 @dataclass
 class Path3D:

@@ -3,7 +3,7 @@ import os
 import sys
 import numpy as np
 import open3d as o3d
-from typing import Union
+from typing import Union, Optional
 from overrides import overrides
 
 if sys.platform.startswith("win"):
@@ -15,6 +15,9 @@ else:
 from Min3D.core.containers.geometry_base import GeometryBase
 
 
+__all__ = ["SurfaceWireframe"]
+
+
 ## main class implementation - Cell membrane extraction tool
 class SurfaceWireframe(GeometryBase):
     def __init__(self, geometry: o3d.geometry.LineSet, **kwargs) -> None:
@@ -23,9 +26,7 @@ class SurfaceWireframe(GeometryBase):
     # %% Classmethods
     @classmethod
     @overrides
-    def from_ply(
-        cls, file_path: Union[str, None] = None, **kwargs
-    ) -> "SurfaceWireframe":
+    def from_ply(cls, file_path: Optional[str] = None, **kwargs) -> "SurfaceWireframe":
         if file_path is None or not os.path.isfile(file_path):
             if pyfd is None:
                 raise RuntimeError(
@@ -61,7 +62,7 @@ class SurfaceWireframe(GeometryBase):
 
     # %% IO
     @overrides
-    def save(self, file_path: Union[str, None] = None) -> None:
+    def save(self, file_path: Optional[str] = None) -> None:
         if file_path is None or not os.path.isdir(os.path.dirname(file_path)):
             if pyfd is None:
                 raise RuntimeError(
@@ -79,7 +80,7 @@ class SurfaceWireframe(GeometryBase):
         o3d.io.write_line_set(file_path, self.geometry)
 
     @overrides
-    def load(self, file_path: Union[str, None] = None) -> None:
+    def load(self, file_path: Optional[str] = None) -> None:
         if file_path is None or not os.path.isfile(file_path):
             if pyfd is None:
                 raise RuntimeError(

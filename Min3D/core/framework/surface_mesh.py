@@ -3,7 +3,7 @@ import os
 import sys
 import numpy as np
 import open3d as o3d
-from typing import Union
+from typing import Union, Optional
 from overrides import overrides
 
 if sys.platform.startswith("win"):
@@ -14,6 +14,9 @@ else:
 ## custom dependencies
 from Min3D.core.containers.geometry_base import GeometryBase
 from Min3D.core.helpers.alpha_shape_helper import AlphaShapeHelper
+
+
+__all__ = ["SurfaceMesh"]
 
 
 ## main class implementation - Cell membrane extraction tool
@@ -27,7 +30,7 @@ class SurfaceMesh(GeometryBase):
     # %% Classmethods
     @classmethod
     @overrides
-    def from_ply(cls, file_path: Union[str, None] = None, **kwargs) -> "SurfaceMesh":
+    def from_ply(cls, file_path: Optional[str] = None, **kwargs) -> "SurfaceMesh":
         if file_path is None or not os.path.isfile(file_path):
             if pyfd is None:
                 raise RuntimeError(
@@ -72,7 +75,7 @@ class SurfaceMesh(GeometryBase):
     # %% Transformations
     def decimate_mesh(
         self, target_number_of_triangles: int, inplace: bool = True
-    ) -> Union["SurfaceMesh", None]:
+    ) -> Optional["SurfaceMesh"]:
         decimated_mesh = self.geometry.simplify_quadric_decimation(
             target_number_of_triangles=target_number_of_triangles
         )
@@ -93,7 +96,7 @@ class SurfaceMesh(GeometryBase):
 
     def subdivide_mesh(
         self, number_of_iterations: int, inplace: bool = True
-    ) -> Union["SurfaceMesh", None]:
+    ) -> Optional["SurfaceMesh"]:
         subdivided_mesh = self.geometry.subdivide_midpoint(
             number_of_iterations=number_of_iterations
         )
@@ -170,7 +173,7 @@ class SurfaceMesh(GeometryBase):
 
     # %% IO
     @overrides
-    def save(self, file_path: Union[str, None] = None) -> None:
+    def save(self, file_path: Optional[str] = None) -> None:
         if file_path is None or not os.path.isdir(os.path.dirname(file_path)):
             if pyfd is None:
                 raise RuntimeError(
@@ -188,7 +191,7 @@ class SurfaceMesh(GeometryBase):
         o3d.io.write_triangle_mesh(file_path, self.geometry)
 
     @overrides
-    def load(self, file_path: Union[str, None] = None) -> None:
+    def load(self, file_path: Optional[str] = None) -> None:
         if file_path is None or not os.path.isfile(file_path):
             if pyfd is None:
                 raise RuntimeError(

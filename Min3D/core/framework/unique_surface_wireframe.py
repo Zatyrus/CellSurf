@@ -3,7 +3,7 @@ import os
 import sys
 import numpy as np
 import open3d as o3d
-from typing import Union
+from typing import Optional
 from overrides import overrides
 
 if sys.platform.startswith("win"):
@@ -15,6 +15,9 @@ else:
 from Min3D.core.framework.surface_wireframe import SurfaceWireframe
 
 
+__all__ = ["UniqueSurfaceWireframe"]
+
+
 # implementation - this is a direct copy of the wireframe, but with unique edges only (i.e. no duplicate edges)
 class UniqueSurfaceWireframe(SurfaceWireframe):
     def __init__(self, geometry: o3d.geometry.LineSet, **kwargs) -> None:
@@ -23,7 +26,7 @@ class UniqueSurfaceWireframe(SurfaceWireframe):
     @classmethod
     @overrides
     def from_ply(
-        cls, file_path: Union[str, None] = None, **kwargs
+        cls, file_path: Optional[str] = None, **kwargs
     ) -> "UniqueSurfaceWireframe":
         if file_path is None or not os.path.isfile(file_path):
             if pyfd is None:
