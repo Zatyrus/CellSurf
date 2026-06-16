@@ -49,11 +49,11 @@ class AlphaShapeHelper:
     ) -> o3d.geometry.TriangleMesh:
         """
         Cluster the triangles of a mesh based on a specified criterion.
-        The function clusters the triangles of the mesh and retains only the largest cluster based on the specified criterion, which can be either "area" or "number".
+        The function clusters the triangles of the mesh and retains only the largest cluster based on the specified criterion, which can be either "area" or "vertices".
 
         Args:
             mesh (o3d.geometry.TriangleMesh): The mesh to cluster.
-            cluster_by (str, optional): The criterion to use for clustering. Defaults to "area".
+            cluster_by (str, optional): The criterion to use for clustering. Choices are "area" or "vertices". Defaults to "area".
 
         Raises:
             NotImplementedError: When an unsupported criterion for clustering is provided.
@@ -66,7 +66,7 @@ class AlphaShapeHelper:
         )
         if cluster_by == "area":
             criterion = cluster_tri_areas
-        elif cluster_by == "number":
+        elif cluster_by == "vertices":
             criterion = cluster_n_triangles
         else:
             raise NotImplementedError(

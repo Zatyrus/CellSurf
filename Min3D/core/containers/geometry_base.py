@@ -63,7 +63,9 @@ class GeometryBase(ABC):
     @classmethod
     @abstractmethod
     def from_ply(cls, file_path: Optional[str] = None, **kwargs) -> "GeometryBase":
-        """Load geometry from a PLY file. If no file path is provided and on a Windows machine, a file dialog will be opened to select a PLY file.
+        """
+        Load geometry from a PLY file.
+        If no file path is provided and on a Windows machine, a file dialog will be opened to select a PLY file.
 
         Args:
             file_path (Optional[str], optional): The path to the PLY file. Defaults to None.

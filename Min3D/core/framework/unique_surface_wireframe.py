@@ -21,6 +21,16 @@ __all__ = ["UniqueSurfaceWireframe"]
 # implementation - this is a direct copy of the wireframe, but with unique edges only (i.e. no duplicate edges)
 class UniqueSurfaceWireframe(SurfaceWireframe):
     def __init__(self, geometry: o3d.geometry.LineSet, **kwargs) -> None:
+        """
+        Geometry class for representing a unique surface wireframe,
+        which is a collection of vertices and edges that define the structure of a surface without filling in the faces.
+
+        Importantly, this class ensures that all edges in the wireframe are unique, meaning that duplicate edges (edges that connect the same pair of vertices) are removed.
+        This is particularly useful for applications where the presence of duplicate edges can lead to inaccuracies or inefficiencies in processing, such as in certain types of mesh analysis or visualization.
+
+        Args:
+            geometry (o3d.geometry.LineSet): The line set representing the unique surface wireframe.
+        """
         super().__init__(geometry=geometry, **kwargs)
 
     @classmethod
@@ -54,6 +64,14 @@ class UniqueSurfaceWireframe(SurfaceWireframe):
     def from_wireframe(
         cls, wireframe: SurfaceWireframe, **kwargs
     ) -> "UniqueSurfaceWireframe":
+        """Create a UniqueSurfaceWireframe from a given SurfaceWireframe by removing duplicate edges.
+
+        Args:
+            wireframe (SurfaceWireframe): The surface wireframe from which to create a unique wireframe.
+
+        Returns:
+            UniqueSurfaceWireframe: The unique surface wireframe.
+        """
         unique_edges = set()
         for edge in wireframe.get_lines():
             sorted_edge = tuple(sorted(edge))

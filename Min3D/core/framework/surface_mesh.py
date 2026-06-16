@@ -22,10 +22,15 @@ __all__ = ["SurfaceMesh"]
 ## main class implementation - Cell membrane extraction tool
 class SurfaceMesh(GeometryBase):
     def __init__(self, geometry: o3d.geometry.TriangleMesh, **kwargs) -> None:
-        super().__init__(geometry=geometry, **kwargs)
+        """
+        Geometry class for representing surface meshes, built on top of open3d's TriangleMesh class.
+        Provides additional functionality for geometric analysis, data manipulation, and visualization.
 
-    def __post_init__(self) -> None:
-        pass
+        Args:
+            geometry (o3d.geometry.TriangleMesh): Main geometry object representing the surface mesh. Must be an instance of open3d.geometry.TriangleMesh.
+            **kwargs: Additional keyword arguments for configuration (e.g., verbose mode). Currently a placeholder.
+        """
+        super().__init__(geometry=geometry, **kwargs)
 
     # %% Classmethods
     @classmethod
@@ -53,21 +58,81 @@ class SurfaceMesh(GeometryBase):
 
     # %% Utility functions
     def get_vertex(self, ind: int) -> np.ndarray:
+        """Return the vertex at the specified index.
+
+        Args:
+            ind (int): The index of the vertex to retrieve.
+
+        Raises:
+            IndexError: If the provided index is out of range.
+
+        Returns:
+            np.ndarray: The vertex coordinates as a numpy array.
+        """
+        if ind < 0 or ind >= len(self.geometry.vertices):
+            raise IndexError(
+                f"Index {ind} is out of bounds for vertices array of length {len(self.geometry.vertices)}."
+            )
         return np.asarray(self.geometry.vertices)[ind]
 
     def get_vertices(self) -> np.ndarray:
+        """Return all vertices of the mesh as a numpy array.
+
+        Returns:
+            np.ndarray: An array of shape (N, 3) containing the coordinates of all vertices.
+        """
         return np.asarray(self.geometry.vertices)
 
     def get_triangle(self, ind: int) -> np.ndarray:
-        return np.asarray(self.geometry.triangles)[ind]
+        """Return the triangle at the specified index.
+
+        Args:
+            ind (int): The index of the triangle to retrieve.
+
+        Raises:
+            IndexError: If the provided index is out of range.
+
+        Returns:
+            np.ndarray: The triangle vertices as a numpy array.
+        """
+        if ind < 0 or ind >= len(self.geometry.triangles):
+            raise IndexError(
+                f"Index {ind} is out of bounds for triangles array of length {len(self.geometry.triangles)}."
+            )
+        triangle_indices = np.asarray(self.geometry.triangles)[ind]
+        triangle_vertices = self.get_vertices()[triangle_indices]
+        return triangle_vertices
 
     def get_triangles(self) -> np.ndarray:
-        return np.asarray(self.geometry.triangles)
+        """Return all triangles of the mesh as a numpy array.
+
+        Returns:
+            np.ndarray: An array of shape (M, 3) containing the vertices of all triangles.
+        """
+        triangles = []
+        for i in range(len(self.geometry.triangles)):
+            triangles.append(self.get_triangle(i))
+        return np.array(triangles)
 
     def get_surface_area(self) -> float:
+        """Compute and return the surface area of the mesh.
+
+        Returns:
+            float: The surface area of the mesh.
+        """
         return self.geometry.get_surface_area()
 
     def get_volume(self) -> float:
+        """
+        Compute and return the volume enclosed by the mesh.
+        Note that the mesh must be watertight for this computation to be valid.
+
+        Raises:
+            ValueError: If the mesh is not watertight.
+
+        Returns:
+            float: The volume enclosed by the mesh.
+        """
         if not AlphaShapeHelper.check_watertight(self.geometry):
             raise ValueError("Mesh must be watertight to compute volume.")
         return self.geometry.get_volume()
@@ -75,7 +140,16 @@ class SurfaceMesh(GeometryBase):
     # %% Transformations
     def decimate_mesh(
         self, target_number_of_triangles: int, inplace: bool = True
-    ) -> Optional["SurfaceMesh"]:
+    ) -> "SurfaceMesh":
+        """Decimate (simplify) the mesh to reduce the number of triangles while preserving the overall shape.
+
+        Args:
+            target_number_of_triangles (int): The target number of triangles for the decimated mesh.
+            inplace (bool, optional): Whether to modify the mesh in place. Defaults to True.
+
+        Returns:
+            SurfaceMesh: Either the modified mesh (if inplace=True) or a new SurfaceMesh instance containing the decimated mesh (if inplace=False).
+        """
         decimated_mesh = self.geometry.simplify_quadric_decimation(
             target_number_of_triangles=target_number_of_triangles
         )
@@ -96,7 +170,17 @@ class SurfaceMesh(GeometryBase):
 
     def subdivide_mesh(
         self, number_of_iterations: int, inplace: bool = True
-    ) -> Optional["SurfaceMesh"]:
+    ) -> "SurfaceMesh":
+        """Subdivide the mesh using midpoint subdivision to increase the number of triangles and create a smoother surface.
+
+        Args:
+            number_of_iterations (int): The number of subdivision iterations to perform.
+            inplace (bool, optional): Whether to modify the mesh in place. Defaults to True.
+
+        Returns:
+            SurfaceMesh: Either the modified mesh (if inplace=True) or a new SurfaceMesh instance containing the subdivided mesh (if inplace=False).
+        """
+
         subdivided_mesh = self.geometry.subdivide_midpoint(
             number_of_iterations=number_of_iterations
         )
@@ -117,9 +201,22 @@ class SurfaceMesh(GeometryBase):
 
     # %% Alpha shapes
     def check_watertight(self) -> bool:
+        """Check if the mesh is watertight (i.e., has no holes and forms a closed surface).
+
+        Returns:
+            bool: True if the mesh is watertight, False otherwise.
+        """
         return AlphaShapeHelper.check_watertight(self.geometry)
 
     def clean_mesh(self, inplace: bool = True) -> "SurfaceMesh":
+        """Clean the mesh by removing duplicate vertices, degenerate triangles, and non-manifold edges.
+
+        Args:
+            inplace (bool, optional): Whether to modify the mesh in place. Defaults to True.
+
+        Returns:
+            SurfaceMesh: Either the modified mesh (if inplace=True) or a new SurfaceMesh instance containing the cleaned mesh (if inplace=False).
+        """
         cleaned_mesh = AlphaShapeHelper.clean_mesh(self.geometry)
         if inplace:
             self.geometry = cleaned_mesh
@@ -130,6 +227,15 @@ class SurfaceMesh(GeometryBase):
     def cluster_mesh(
         self, cluster_by: str = "area", inplace: bool = True
     ) -> "SurfaceMesh":
+        """Cluster the mesh by merging adjacent triangles based on a specified criterion (e.g., area, number of vertices) to create a coarser representation of the surface.
+
+        Args:
+            cluster_by (str, optional): The criterion to use for clustering. Choices are "area" or "vertices". Defaults to "area".
+            inplace (bool, optional): Whether to modify the mesh in place. Defaults to True.
+
+        Returns:
+            SurfaceMesh: Either the modified mesh (if inplace=True) or a new SurfaceMesh instance containing the clustered mesh (if inplace=False).
+        """
         clustered_mesh = AlphaShapeHelper.cluster_mesh(
             self.geometry, cluster_by=cluster_by
         )
@@ -140,6 +246,14 @@ class SurfaceMesh(GeometryBase):
             return SurfaceMesh.from_o3d(clustered_mesh)
 
     def repair_mesh(self, inplace: bool = True) -> "SurfaceMesh":
+        """Attempts to repair the mesh by filling holes, removing non-manifold edges, and fixing other common issues that can arise in surface meshes.
+
+        Args:
+            inplace (bool, optional): Whether to modify the mesh in place. Defaults to True.
+
+        Returns:
+            SurfaceMesh: Either the modified mesh (if inplace=True) or a new SurfaceMesh instance containing the repaired mesh (if inplace=False).
+        """
         repaired_mesh = AlphaShapeHelper.repair_mesh(self.geometry)
         if inplace:
             self.geometry = repaired_mesh
@@ -150,6 +264,17 @@ class SurfaceMesh(GeometryBase):
     def make_watertight(
         self, cluster_by: str = "area", inplace: bool = True
     ) -> "SurfaceMesh":
+        """
+        Attempts to make the mesh watertight by filling holes and ensuring that the surface forms a closed manifold.
+        This is important for accurate volume calculations and other analyses that require a closed surface.
+
+        Args:
+            cluster_by (str, optional): The criterion to use for clustering. Choices are "area" or "vertices". Defaults to "area".
+            inplace (bool, optional): Whether to modify the mesh in place. Defaults to True.
+
+        Returns:
+            SurfaceMesh: Either the modified mesh (if inplace=True) or a new SurfaceMesh instance containing the watertight mesh (if inplace=False).
+        """
         watertight_mesh = AlphaShapeHelper.make_watertight(
             self.geometry, cluster_by=cluster_by
         )
@@ -162,6 +287,16 @@ class SurfaceMesh(GeometryBase):
     def clean_and_cluster(
         self, cluster_by: str = "area", inplace: bool = True
     ) -> "SurfaceMesh":
+        """Convenience function that combines mesh cleaning and clustering into a single step.
+        This can be useful for quickly preparing a mesh for analysis or visualization by first removing any issues and then simplifying the surface based on the specified clustering criterion.
+
+        Args:
+            cluster_by (str, optional): The criterion to use for clustering. Choices are "area" or "vertices". Defaults to "area".
+            inplace (bool, optional): Whether to modify the mesh in place. Defaults to True.
+
+        Returns:
+            SurfaceMesh: Either the modified mesh (if inplace=True) or a new SurfaceMesh instance containing the cleaned and clustered mesh (if inplace=False).
+        """
         cleaned_and_clustered_mesh = self.clean_mesh(inplace=False).cluster_mesh(
             cluster_by=cluster_by, inplace=False
         )
@@ -217,12 +352,45 @@ class SurfaceMesh(GeometryBase):
 
     # %% Properties
     @property
-    def vertices(self) -> np.ndarray:
+    def vertices(self) -> o3d.utility.Vector3dVector:
+        """Return the vertices of the mesh as an open3d Vector3dVector.
+
+        Returns:
+            o3d.utility.Vector3dVector: The vertices of the mesh.
+        """
         return self.geometry.vertices
 
+    @vertices.setter
+    def vertices(self, vertex_array: Union[np.ndarray, o3d.utility.Vector3dVector]):
+        """Set the vertices of the mesh using either a numpy array or an open3d Vector3dVector.
+
+        Args:
+            vertex_array (Union[np.ndarray, o3d.utility.Vector3dVector]): The array of vertices to set.
+
+        """
+        if isinstance(vertex_array, np.ndarray):
+            vertex_array = o3d.utility.Vector3dVector(vertex_array)
+        self.geometry.vertices = vertex_array
+
     @property
-    def triangles(self) -> np.ndarray:
+    def triangles(self) -> o3d.utility.Vector3iVector:
+        """Return the triangles of the mesh as an open3d Vector3iVector, where each triangle is represented by the indices of its three vertices.
+
+        Returns:
+            o3d.utility.Vector3iVector: The triangles of the mesh.
+        """
         return self.geometry.triangles
+
+    @triangles.setter
+    def triangles(self, triangle_array: Union[np.ndarray, o3d.utility.Vector3iVector]):
+        """Set the triangles of the mesh using either a numpy array or an open3d Vector3iVector, where each triangle is represented by the indices of its three vertices.
+
+        Args:
+            triangle_array (Union[np.ndarray, o3d.utility.Vector3iVector]): The array of triangles to set.
+        """
+        if isinstance(triangle_array, np.ndarray):
+            triangle_array = o3d.utility.Vector3iVector(triangle_array)
+        self.geometry.triangles = triangle_array
 
     @property
     @overrides
