@@ -23,7 +23,7 @@ except ImportError:
 from cellnav.core.framework.point_cloud import PointCloud
 from cellnav.core.framework.surface_wireframe import SurfaceWireframe
 from cellnav.core.framework.unique_surface_wireframe import UniqueSurfaceWireframe
-from cellnav.core.util.geometry_transformer import GeometryTransformer
+from cellnav.util.geometry_transformer import GeometryTransformer
 
 
 __all__ = ["SurfaceGraph"]
