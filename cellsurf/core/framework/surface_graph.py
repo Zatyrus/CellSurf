@@ -129,9 +129,7 @@ class SurfaceGraph:
 
         # make edge_length_LUT and check consistency if not provided - this is necessary for graph construction and shortest path algorithms
         if self._edge_length_LUT is None:
-            self._edge_length_LUT = GeometryTransformer.edge_length_LUT_from(
-                self.edges
-            )
+            self._edge_length_LUT = GeometryTransformer.edge_length_LUT_from(self.edges)
 
         # check consistency of edge_length_LUT with graph edges to catch any issues with graph construction or edge representation early on
         assert self.check_consistency_of_edge_length_LUT()
@@ -868,9 +866,7 @@ class SurfaceGraph:
         self._graph.add_nodes_from(range(len(self._vertices.points)))
 
         # populate graph with edges
-        self._edge_length_LUT = GeometryTransformer.edge_length_LUT_from(
-            self._edges
-        )
+        self._edge_length_LUT = GeometryTransformer.edge_length_LUT_from(self._edges)
         self._graph.add_edges_from(
             [
                 (line[0], line[1], self._edge_length_LUT[(line[0], line[1])])

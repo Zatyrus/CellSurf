@@ -275,7 +275,9 @@ class GeometryBase(ABC):
             return GeometryBase.from_o3d(edited_geometry)
 
     # %% Visualization helper functions
-    def paint_uniform_color(self, color: Union[Tuple[float, float, float], List[float], np.ndarray]) -> None:
+    def paint_uniform_color(
+        self, color: Union[Tuple[float, float, float], List[float], np.ndarray]
+    ) -> None:
         """Paint the geometry with a uniform color.
 
         Args:

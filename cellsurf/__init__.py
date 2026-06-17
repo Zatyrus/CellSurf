@@ -14,5 +14,5 @@ __all__ = [
     "SurfaceWireframe",
     "PointCloud",
     "UniqueSurfaceWireframe",
-    "GeometryTransformer"
+    "GeometryTransformer",
 ]
