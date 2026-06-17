@@ -5,7 +5,7 @@ from typing import Tuple, Union, List
 ## custom dependencies
 from cellnav.core.framework.point_cloud import PointCloud
 
-__all_ = ["distance_from_line"]
+__all__= ["distance_from_line"]
 
 
 ## get distance from central axis

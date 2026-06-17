@@ -5,7 +5,7 @@ import open3d as o3d
 from typing import List, Union
 
 ## custom dependencies
-from cellnav.core.util.make_3d_path import make_3d_path
+from cellnav.util.make_3d_path import make_3d_path
 
 __all__ = ["draw_3d_path"]
 

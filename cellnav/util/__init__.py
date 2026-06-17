@@ -1,12 +1,12 @@
 ## forward imports for util module
-from cellnav.core.util.geometry_transformer import (
+from cellnav.util.geometry_transformer import (
     GeometryTransformer as GeometryTransformer,
 )
-from cellnav.core.util.make_3d_path import make_3d_path as make_3d_path
-from cellnav.core.util.distance_from_point import (
+from cellnav.util.make_3d_path import make_3d_path as make_3d_path
+from cellnav.util.distance_from_point import (
     distance_from_point as distance_from_point,
 )
-from cellnav.core.util.distance_from_line import (
+from cellnav.util.distance_from_line import (
     distance_from_line as distance_from_line,
 )
 

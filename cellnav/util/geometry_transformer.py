@@ -24,7 +24,7 @@ from cellnav.core.framework.surface_wireframe import SurfaceWireframe
 from cellnav.core.framework.unique_surface_wireframe import UniqueSurfaceWireframe
 
 
-__all_ = ["GeometryTransformer"]
+__all__= ["GeometryTransformer"]
 
 
 ## main class implementation - Cell membrane extraction tool
@@ -209,22 +209,22 @@ class GeometryTransformer:
         return PointCloud.from_o3d(pcd)
 
     @staticmethod
-    def sample_uniformly_from(mesh: SurfaceMesh, number_of_points: int) -> PointCloud:
+    def sample_uniformly_from(mesh: SurfaceMesh, num_points: int) -> PointCloud:
         """Create a point cloud by uniformly sampling points from the surface of a given mesh.
 
         Args:
             mesh (SurfaceMesh): The mesh from which to sample points.
-            number_of_points (int): The number of points to sample.
+            num_points (int): The number of points to sample.
 
         Returns:
             PointCloud: The created point cloud.
         """
-        pcd = mesh.geometry.sample_points_uniformly(number_of_points=number_of_points)
+        pcd = mesh.geometry.sample_points_uniformly(number_of_points=num_points)
         return PointCloud.from_o3d(pcd)
 
     @staticmethod
     def sample_poisson_disk_from(
-        mesh: SurfaceMesh, number_of_points: int
+        mesh: SurfaceMesh, num_points: int
     ) -> PointCloud:
         """
         Create a point cloud by sampling points from the surface of a given mesh using Poisson disk sampling.
@@ -232,14 +232,14 @@ class GeometryTransformer:
 
         Args:
             mesh (SurfaceMesh): The mesh from which to sample points.
-            number_of_points (int): The number of points to sample.
+            num_points (int): The number of points to sample.
 
         Returns:
             PointCloud: The created point cloud.
         """
 
         pcd = mesh.geometry.sample_points_poisson_disk(
-            number_of_points=number_of_points
+            number_of_points=num_points
         )
         return PointCloud.from_o3d(pcd)
 

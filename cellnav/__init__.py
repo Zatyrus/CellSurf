@@ -6,7 +6,7 @@ from cellnav.core.framework import (
     PointCloud as PointCloud,
     UniqueSurfaceWireframe as UniqueSurfaceWireframe,
 )
-from cellnav.core.util import GeometryTransformer as GeometryTransformer
+from cellnav.util import GeometryTransformer as GeometryTransformer
 
 __all__ = [
     "SurfaceMesh",
