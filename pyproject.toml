@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "cellsurf"
+name = "cellnav"
 version = "0.0.1"
 description = "A framework implementation to of 3D methods for data representation, surface reconstruction and geodesic distance measures built on top of the Open3D and rustworkx libraries. The framework is designed to be easily extendable and to provide a unified interface for different methods. It is intended to be used for research and development in the field of 3D data processing and analysis."
 authors = ["Bela Vogler <bela.vogler@uni-jena.de>"]
