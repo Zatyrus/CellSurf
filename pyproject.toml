@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "min3d"
+name = "cellsurf"
 version = "0.0.1"
-description = "A framework implementation of 3D methods for data representation, surface reconstruction and geodesic distance measures. Also includes visualizers and convenience methods to interact with 3D datasets."
+description = "A framework implementation to of 3D methods for data representation, surface reconstruction and geodesic distance measures built on top of the Open3D and rustworkx libraries. The framework is designed to be easily extendable and to provide a unified interface for different methods. It is intended to be used for research and development in the field of 3D data processing and analysis."
 authors = ["Bela Vogler <bela.vogler@uni-jena.de>"]
-license = "GPL-3"
+license = "Apache-2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
