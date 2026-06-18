@@ -6,6 +6,9 @@ from copy import deepcopy
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Tuple, Union, Optional
 
+## custom dependencies
+from cellnav.core.helpers.draw_geometries import draw_geometries
+
 __all__ = ["GeometryBase"]
 
 
@@ -229,28 +232,28 @@ class GeometryBase(ABC):
             return GeometryBase.from_o3d(new_geometry)
 
     # %% 3D Visualization functions
-    def visualize(self) -> None:
+    def visualize(self, scalebar: Union[float, int, bool] = False) -> None:
         """
         Visualize the geometry object saved to self._geometry using Open3D's visualization tools.
         This will open a window where the geometry can be viewed.
         No interactions are possible or planned in this basic visualization mode.
         """
-        o3d.visualization.draw_geometries([self._geometry])  # type: ignore
+        draw_geometries([self._geometry], scalebar=scalebar)
 
-    def visualize_only(self, *args) -> None:
+    def visualize_only(self, *args, scalebar: Union[float, int, bool] = False) -> None:
         """
         Visualizes only the provided geometries, without including the geometry of the current object.
         This can be useful for visualizing related geometries (e.g. a path on top of a mesh) without showing the base geometry.
         """
-        o3d.visualization.draw_geometries([*args])  # type: ignore
+        draw_geometries([*args], scalebar=scalebar)
 
-    def visualize_with(self, *args) -> None:
+    def visualize_with(self, *args, scalebar: Union[float, int, bool] = False) -> None:
         """
         Visualizes the current geometry together with additional geometries provided as arguments.
         This can be useful for visualizing the base geometry together with related geometries (e.g. a path on top of a mesh).
         """
         args = [arg.geometry if isinstance(arg, GeometryBase) else arg for arg in args]
-        o3d.visualization.draw_geometries([self._geometry, *args])  # type: ignore
+        draw_geometries([self._geometry, *args], scalebar=scalebar)
 
     def visual_editor(
         self, inplace: bool = True, full_screen: bool = False
@@ -258,6 +261,9 @@ class GeometryBase(ABC):
         """
         Spin up the Open3D visualizer in editing mode, which allows the user to interactively select points on the geometry.
         After the user finishes editing and closes the visualizer, the edited geometry can be returned as either a new object or by modifying the original object in place.
+        
+        No scalebar will be added to the editing visualizer, as the main purpose of this function is to allow the user to select points on the geometry, 
+        and a scalebar may not be necessary or may even be distracting in this context. However, this can be added in the future if needed.
 
         Args:
             inplace (bool, optional): Whether to modify the original geometry in place or return a new geometry object. Defaults to True.
