@@ -24,7 +24,7 @@ from cellnav.core.framework.surface_wireframe import SurfaceWireframe
 from cellnav.core.framework.unique_surface_wireframe import UniqueSurfaceWireframe
 
 
-__all__= ["GeometryTransformer"]
+__all__ = ["GeometryTransformer"]
 
 
 ## main class implementation - Cell membrane extraction tool
@@ -223,9 +223,7 @@ class GeometryTransformer:
         return PointCloud.from_o3d(pcd)
 
     @staticmethod
-    def sample_poisson_disk_from(
-        mesh: SurfaceMesh, num_points: int
-    ) -> PointCloud:
+    def sample_poisson_disk_from(mesh: SurfaceMesh, num_points: int) -> PointCloud:
         """
         Create a point cloud by sampling points from the surface of a given mesh using Poisson disk sampling.
         This ensures that points are more evenly distributed across the surface.
@@ -238,9 +236,7 @@ class GeometryTransformer:
             PointCloud: The created point cloud.
         """
 
-        pcd = mesh.geometry.sample_points_poisson_disk(
-            number_of_points=num_points
-        )
+        pcd = mesh.geometry.sample_points_poisson_disk(number_of_points=num_points)
         return PointCloud.from_o3d(pcd)
 
     # %% Wireframe Transformations

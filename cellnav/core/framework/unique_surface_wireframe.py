@@ -3,7 +3,7 @@ import os
 import sys
 import numpy as np
 import open3d as o3d
-from typing import Optional
+from typing import Any, Dict, Optional
 from overrides import overrides
 
 if sys.platform.startswith("win"):
@@ -32,6 +32,18 @@ class UniqueSurfaceWireframe(SurfaceWireframe):
             geometry (o3d.geometry.LineSet): The line set representing the unique surface wireframe.
         """
         super().__init__(geometry=geometry, **kwargs)
+
+    def __post_init__(self):
+        # remove duplicate edges from the wireframe
+        unique_edges = set()
+        for edge in self._geometry.lines:
+            sorted_edge = tuple(sorted(edge))
+            unique_edges.add(sorted_edge)
+
+        unique_edges_list = list(unique_edges)
+        unique_line_set = o3d.geometry.LineSet()
+        unique_line_set.points = self._geometry.points
+        unique_line_set.lines = o3d.utility.Vector2iVector(np.array(unique_edges_list))
 
     @classmethod
     @overrides
@@ -72,14 +84,16 @@ class UniqueSurfaceWireframe(SurfaceWireframe):
         Returns:
             UniqueSurfaceWireframe: The unique surface wireframe.
         """
-        unique_edges = set()
-        for edge in wireframe.get_lines():
-            sorted_edge = tuple(sorted(edge))
-            unique_edges.add(sorted_edge)
+        return cls.from_o3d(wireframe.geometry, **kwargs)
 
-        unique_edges_list = list(unique_edges)
-        unique_line_set = o3d.geometry.LineSet()
-        unique_line_set.points = wireframe.points
-        unique_line_set.lines = o3d.utility.Vector2iVector(np.array(unique_edges_list))
-
-        return cls.from_o3d(unique_line_set, **kwargs)
+    @classmethod
+    @overrides
+    def from_dict(
+        cls, geometry_dict: Dict[str, Optional[Any]], **kwargs
+    ) -> "UniqueSurfaceWireframe":
+        points = o3d.utility.Vector3dVector(geometry_dict["points"])
+        lines = o3d.utility.Vector2iVector(geometry_dict["lines"])
+        geometry = o3d.geometry.LineSet(points=points, lines=lines)
+        if geometry_dict.get("colors") is not None:
+            geometry.colors = o3d.utility.Vector3dVector(geometry_dict["colors"])
+        return cls(geometry=geometry, **kwargs)

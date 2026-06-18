@@ -15,7 +15,7 @@ if sys.platform.startswith("win"):
 else:
     pyfd = None  # placeholder for non-Windows systems, as tkinter is not supported on Unix-based systems
 
-from typing import List, Tuple, Union, Optional
+from typing import Any, Dict, List, Tuple, Union, Optional
 
 ## custom dependencies
 from cellnav.core.containers.geometry_base import GeometryBase
@@ -63,7 +63,28 @@ class PointCloud(GeometryBase):
         return cls(geometry=geometry, **kwargs)
 
     @classmethod
-    def from_numpy(cls, table: Union[np.ndarray, List[List[float]]], **kwargs) -> "PointCloud":
+    @overrides
+    def from_dict(
+        cls, geometry_dict: Dict[str, Optional[Any]], **kwargs
+    ) -> "PointCloud":
+        if "points" not in geometry_dict:
+            raise ValueError(
+                "Input dictionary must contain a 'points' key with the point cloud data."
+            )
+
+        geometry = o3d.geometry.PointCloud()
+        geometry.points = o3d.utility.Vector3dVector(np.array(geometry_dict["points"]))
+
+        if "colors" in geometry_dict and geometry_dict["colors"] is not None:
+            colors = np.array(geometry_dict["colors"])
+            geometry.colors = o3d.utility.Vector3dVector(colors)
+
+        return cls(geometry=geometry, **kwargs)
+
+    @classmethod
+    def from_numpy(
+        cls, table: Union[np.ndarray, List[List[float]]], **kwargs
+    ) -> "PointCloud":
         """Build a PointCloud object from a numpy array of shape (N, 3) representing N points in 3D space.
 
         Args:
@@ -75,24 +96,32 @@ class PointCloud(GeometryBase):
         # catch shape mismatch
         if isinstance(table, np.ndarray):
             if table.size == 0:
-                raise ValueError("Input table is empty. Please provide a non-empty array of shape (N, 3).")
+                raise ValueError(
+                    "Input table is empty. Please provide a non-empty array of shape (N, 3)."
+                )
             if table.ndim != 2 or table.shape[1] != 3:
                 raise ValueError("Input table must be a numpy array of shape (N, 3).")
         elif isinstance(table, list):
             if not all(len(row) == 3 for row in table):
-                raise ValueError("Input table must be a list of lists with 3 elements each.")
+                raise ValueError(
+                    "Input table must be a list of lists with 3 elements each."
+                )
             table = np.array(table)  # convert to numpy array for easier processing
         else:
             raise TypeError("Input table must be a numpy array or a list of lists.")
 
-        # open3d's PointCloud class expects an open3d.utility.Vector3dVector for the points, 
+        # open3d's PointCloud class expects an open3d.utility.Vector3dVector for the points,
         # so we need to convert the numpy array to that format
         geometry = o3d.geometry.PointCloud()
         try:
             geometry.points = o3d.utility.Vector3dVector(table)
         except RuntimeError as _:
-            print("Warning: Failed to convert input table to open3d PointCloud. Falling back to an empty point cloud.")
-            geometry.points = o3d.utility.Vector3dVector(np.empty((0, 3)))  # fallback to empty point cloud if input is invalid
+            print(
+                "Warning: Failed to convert input table to open3d PointCloud. Falling back to an empty point cloud."
+            )
+            geometry.points = o3d.utility.Vector3dVector(
+                np.empty((0, 3))
+            )  # fallback to empty point cloud if input is invalid
         return cls(geometry=geometry, **kwargs)
 
     # %% Utility functions
@@ -659,6 +688,15 @@ class PointCloud(GeometryBase):
 
         self._geometry = o3d.io.read_point_cloud(file_path)
 
+    @overrides
+    def to_dict(self) -> Dict[str, Optional[Any]]:
+        return {
+            "points": np.asarray(self._geometry.points).tolist(),
+            "colors": np.asarray(self._geometry.colors).tolist()
+            if self._geometry.colors
+            else None,
+        }
+
     # %% Helper functions
     def __display_inlier_outlier(
         self, pcd: o3d.geometry.PointCloud, ind: np.ndarray
@@ -689,61 +727,93 @@ class PointCloud(GeometryBase):
     @overrides
     def __len__(self) -> int:
         return len(self._geometry.points)
-    
+
     @overrides
-    def __add__(self, other: "PointCloud") -> "PointCloud":
+    def __add__(self, other: "GeometryBase") -> "PointCloud":
         if not isinstance(other, PointCloud):
             raise ValueError("Can only add another PointCloud object.")
         return PointCloud.from_o3d(self._geometry + other._geometry)
-    
+
     @overrides
-    def __sub__(self, other: "PointCloud") -> "PointCloud":
+    def __sub__(self, other: "GeometryBase") -> "PointCloud":
         if not isinstance(other, PointCloud):
             raise ValueError("Can only subtract another PointCloud object.")
-        
+
         # compute the set difference of the points in self and other
-        new_points = np.array([point for point in self.points if point not in other.points])
+        new_points = np.array(
+            [point for point in self.points if point not in other.points]
+        )
         if new_points.size == 0:
             self._geometry.points = o3d.utility.Vector3dVector(np.empty((0, 3)))
             self._geometry.colors = o3d.utility.Vector3dVector(np.empty((0, 3)))
             return self
-    
+
         new_pcd = o3d.geometry.PointCloud()
         new_pcd.points = o3d.utility.Vector3dVector(new_points)
-        
+
         # if colors are present, we need to filter them as well
-        new_colors = np.array([color for point, color in zip(self.points, self.colors) if point not in other.points]) if self._geometry.colors else np.array([])
-        new_pcd.colors = o3d.utility.Vector3dVector(new_colors) if new_colors.size > 0 else o3d.utility.Vector3dVector(np.empty((0, 3)))
-        
+        new_colors = (
+            np.array(
+                [
+                    color
+                    for point, color in zip(self.points, self.colors)
+                    if point not in other.points
+                ]
+            )
+            if self._geometry.colors
+            else np.array([])
+        )
+        new_pcd.colors = (
+            o3d.utility.Vector3dVector(new_colors)
+            if new_colors.size > 0
+            else o3d.utility.Vector3dVector(np.empty((0, 3)))
+        )
+
         return PointCloud.from_o3d(new_pcd)
 
     @overrides
-    def __iadd__(self, other: "PointCloud") -> "PointCloud":
+    def __iadd__(self, other: "GeometryBase") -> "PointCloud":
         if not isinstance(other, PointCloud):
             raise ValueError("Can only add another PointCloud object.")
         new_geometry = self._geometry + other._geometry
         self._geometry = new_geometry
         return self
-    
+
     @overrides
-    def __isub__(self, other: "PointCloud") -> "PointCloud":
+    def __isub__(self, other: "GeometryBase") -> "PointCloud":
         if not isinstance(other, PointCloud):
             raise ValueError("Can only subtract another PointCloud object.")
-        
+
         # compute the set difference of the points in self and other
-        new_points = np.array([point for point in self.points if point not in other.points])
+        new_points = np.array(
+            [point for point in self.points if point not in other.points]
+        )
         if new_points.size == 0:
             self._geometry.points = o3d.utility.Vector3dVector(np.empty((0, 3)))
             self._geometry.colors = o3d.utility.Vector3dVector(np.empty((0, 3)))
             return self
-    
+
         new_pcd = o3d.geometry.PointCloud()
         new_pcd.points = o3d.utility.Vector3dVector(new_points)
-        
+
         # if colors are present, we need to filter them as well
-        new_colors = np.array([color for point, color in zip(self.points, self.colors) if point not in other.points]) if self._geometry.colors else np.array([])
-        new_pcd.colors = o3d.utility.Vector3dVector(new_colors) if new_colors.size > 0 else o3d.utility.Vector3dVector(np.empty((0, 3)))
-            
+        new_colors = (
+            np.array(
+                [
+                    color
+                    for point, color in zip(self.points, self.colors)
+                    if point not in other.points
+                ]
+            )
+            if self._geometry.colors
+            else np.array([])
+        )
+        new_pcd.colors = (
+            o3d.utility.Vector3dVector(new_colors)
+            if new_colors.size > 0
+            else o3d.utility.Vector3dVector(np.empty((0, 3)))
+        )
+
         self._geometry = new_pcd
         return self
 

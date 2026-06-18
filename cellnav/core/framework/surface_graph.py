@@ -1,4 +1,5 @@
 ## dependencies
+import sys
 import numpy as np
 import open3d as o3d
 import rustworkx as rx
@@ -6,6 +7,11 @@ import matplotlib.figure
 from rustworkx.visualization import mpl_draw, graphviz_draw
 
 from typing import Callable, Dict, List, Tuple, Union, Optional, Any
+
+if sys.platform.startswith("win"):
+    import PyFileDialogue as pyfd
+else:
+    pyfd = None  # placeholder for non-Windows systems, as tkinter is not supported on Unix-based systems
 
 # tqdm for progress bars - automatically selects the right version for notebooks vs. terminal
 from IPython.core.getipython import get_ipython
@@ -112,7 +118,9 @@ class SurfaceGraph:
         """
         # check that vertices and edges are of the correct types
         if not isinstance(self._vertices, PointCloud):
-            raise TypeError(f"Vertices must be a PointCloud, got {type(self._vertices)}")
+            raise TypeError(
+                f"Vertices must be a PointCloud, got {type(self._vertices)}"
+            )
         if not isinstance(self._edges, (SurfaceWireframe, UniqueSurfaceWireframe)):
             raise TypeError(
                 f"Edges must be a SurfaceWireframe or UniqueSurfaceWireframe, got {type(self._edges)}"
@@ -129,7 +137,9 @@ class SurfaceGraph:
 
         # make edge_length_LUT and check consistency if not provided - this is necessary for graph construction and shortest path algorithms
         if self._edge_length_LUT is None:
-            self._edge_length_LUT = GeometryTransformer.edge_length_LUT_from(self._edges)
+            self._edge_length_LUT = GeometryTransformer.edge_length_LUT_from(
+                self._edges
+            )
 
         # check consistency of edge_length_LUT with graph edges to catch any issues with graph construction or edge representation early on
         assert self.check_consistency_of_edge_length_LUT()
@@ -189,6 +199,62 @@ class SurfaceGraph:
         # build kNN graph from point cloud
         edges = GeometryTransformer.kNN_wireframe_from(point_cloud, k=k)
         return cls.from_wireframe(edges, **kwargs)
+
+    @classmethod
+    def from_npz(cls, file_path: Optional[str], **kwargs) -> "SurfaceGraph":
+        if not file_path:
+            if pyfd is not None:
+                file_path = pyfd.call_file(
+                    title="Select Surface Mesh NPZ File",
+                    filetypes=[("NPZ files", "*.npz")],
+                )
+            else:
+                raise ValueError(
+                    "Invalid file path. Please provide a valid file path ending with .npz or ensure that pyfiledialog is installed for file dialog support."
+                )
+
+        if not file_path.endswith(".npz"):
+            raise ValueError("Invalid file type. Please select a .npz file.")
+
+        # load npz
+        loaded = np.load(file_path, allow_pickle=True)
+
+        # unpack npz
+        vertices = PointCloud.from_dict(loaded["vertices"].item())
+        edges = UniqueSurfaceWireframe.from_dict(loaded["edges"].item())
+        edge_length_LUT = loaded["edge_length_LUT"].item()
+        path_LUT = loaded["path_LUT"].item()
+        distance_LUT = loaded["distance_LUT"].item()
+        distance_matrix = (
+            loaded["distance_matrix"] if loaded["distance_matrix"].size > 1 else None
+        )
+
+        # make graph
+        graph = rx.PyGraph()
+
+        # populate graph with vertices
+        graph.add_nodes_from(range(len(vertices.points)))
+
+        # populate graph with edges
+        if edge_length_LUT is None:
+            edge_length_LUT = GeometryTransformer.edge_length_LUT_from(edges)
+        graph.add_edges_from(
+            [
+                (line[0], line[1], edge_length_LUT[(line[0], line[1])])
+                for line in edges.lines
+            ]
+        )
+
+        return cls(
+            vertices=vertices,
+            edges=edges,
+            graph=graph,
+            edge_length_LUT=edge_length_LUT,
+            path_LUT=path_LUT,
+            distance_LUT=distance_LUT,
+            distance_matrix=distance_matrix,
+            **kwargs,
+        )
 
     # %% Utility
     def get_vertices(self) -> np.ndarray:
@@ -812,6 +878,86 @@ class SurfaceGraph:
             )
 
         return True
+
+    # %% I/O
+    def save(self, file_path: Optional[str] = None, compress: bool = True) -> None:
+        if not file_path:
+            if pyfd is not None:
+                file_path = pyfd.call_save_as_file(
+                    defaultextension=".npz",
+                    initialfile="*.npz",
+                    title="Select Surface Mesh NPZ File",
+                    filetypes=[("NPZ files", "*.npz")],
+                )
+            else:
+                raise ValueError(
+                    "Invalid file path. Please provide a valid file path ending with .npz or ensure that pyfiledialog is installed for file dialog support."
+                )
+
+        if file_path and not file_path.endswith(".npz"):
+            file_path += ".npz"
+
+        # pack npz
+        to_npz: Dict[str, Any] = {
+            "vertices": self._vertices.to_dict(),
+            "edges": self._edges.to_dict(),
+            "edge_length_LUT": self._edge_length_LUT,
+            "path_LUT": self._path_LUT,
+            "distance_LUT": self._distance_LUT,
+            "distance_matrix": self._distance_matrix,
+        }
+
+        # save npz
+        if compress:
+            np.savez_compressed(file_path, **to_npz)
+        else:
+            np.savez(file_path, **to_npz)
+
+    def load(self, file_path: Optional[str] = None) -> None:
+        if not file_path:
+            if pyfd is not None:
+                file_path = pyfd.call_file(
+                    title="Select Surface Mesh NPZ File",
+                    filetypes=[("NPZ files", "*.npz")],
+                )
+            else:
+                raise ValueError(
+                    "Invalid file path. Please provide a valid file path ending with .npz or ensure that pyfiledialog is installed for file dialog support."
+                )
+
+        if file_path and not file_path.endswith(".npz"):
+            raise ValueError("Invalid file type. Please select a .npz file.")
+
+        # load npz
+        loaded = np.load(file_path, allow_pickle=True)
+
+        # unpack npz
+        self._vertices = PointCloud.from_dict(loaded["vertices"].item())
+        self._edges = UniqueSurfaceWireframe.from_dict(loaded["edges"].item())
+        self._edge_length_LUT = loaded["edge_length_LUT"].item()
+        self._path_LUT = loaded["path_LUT"].item()
+        self._distance_LUT = loaded["distance_LUT"].item()
+        self._distance_matrix = (
+            loaded["distance_matrix"] if loaded["distance_matrix"].size > 1 else None
+        )
+
+        # make graph
+        graph = rx.PyGraph()
+
+        # populate graph with vertices
+        graph.add_nodes_from(range(len(self._vertices.points)))
+
+        # populate graph with edges
+        if self._edge_length_LUT is None:
+            self._edge_length_LUT = GeometryTransformer.edge_length_LUT_from(
+                self._edges
+            )
+        graph.add_edges_from(
+            [
+                (line[0], line[1], self._edge_length_LUT[(line[0], line[1])])
+                for line in self._edges.lines
+            ]
+        )
 
     # %% Dunder methods
     def __repr__(self) -> str:

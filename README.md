@@ -56,17 +56,17 @@ CellNav - Repository
 │   ├───core
 │   │   ├───containers
 │   │   ├───framework
-│   │   ├───helpers
-│   │   └───util
+│   │   └───helpers
 │   ├───generators
-│   └────visualization
-├───test_data
+│   ├───util 
+│   └───visualization
 └───tutorials
 ```
 
 The CellNav codebase is organized into several modules, each responsible for different aspects of the framework:
 - `core`: Contains the core classes and functions for data representation, surface reconstruction, and geodesic distance measures. This includes containers for point clouds and meshes, the main framework for processing data, helper functions for various tasks, and utility functions for common operations.
 - `generators`: Contains functions for generating synthetic 3D shapes and point clouds, which can be used for testing and demonstration purposes.
+- `util`: Contains utility functions for various tasks such as data manipulation and other common operations that are used across the framework. Importantly, the `GeometryTransformer` class is located here, which provides methods for mutating and transforming geometries, such as creating surfaces from point clouds.
 - `visualization`: Contains functions for visualizing point clouds and meshes using Open3D.
 
 # Quick Start and Tutorials

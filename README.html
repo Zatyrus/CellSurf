@@ -188,17 +188,17 @@ pip install jupyter ipykernel ipywidgets
 │   ├───core
 │   │   ├───containers
 │   │   ├───framework
-│   │   ├───helpers
-│   │   └───util
+│   │   └───helpers
 │   ├───generators
-│   └────visualization
-├───test_data
+│   ├───util 
+│   └───visualization
 └───tutorials
 </code></pre>
 <p>The CellNav codebase is organized into several modules, each responsible for different aspects of the framework:</p>
 <ul>
 <li><code>core</code>: Contains the core classes and functions for data representation, surface reconstruction, and geodesic distance measures. This includes containers for point clouds and meshes, the main framework for processing data, helper functions for various tasks, and utility functions for common operations.</li>
 <li><code>generators</code>: Contains functions for generating synthetic 3D shapes and point clouds, which can be used for testing and demonstration purposes.</li>
+<li><code>util</code>: Contains utility functions for various tasks such as data manipulation and other common operations that are used across the framework. Importantly, the <code>GeometryTransformer</code> class is located here, which provides methods for mutating and transforming geometries, such as creating surfaces from point clouds.</li>
 <li><code>visualization</code>: Contains functions for visualizing point clouds and meshes using Open3D.</li>
 </ul>
 <h1 id="quick-start-and-tutorials">Quick Start and Tutorials</h1>

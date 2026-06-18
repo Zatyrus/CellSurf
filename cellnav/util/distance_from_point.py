@@ -5,7 +5,7 @@ from typing import Tuple, Union, List
 ## custom dependencies
 from cellnav.core.framework.point_cloud import PointCloud
 
-__all__= ["distance_from_point"]
+__all__ = ["distance_from_point"]
 
 
 def distance_from_point(
