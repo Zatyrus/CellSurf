@@ -6,26 +6,30 @@ from typing import List, Union
 
 ## custom dependencies
 from cellnav.util.make_3d_path import make_3d_path
+from cellnav.core.helpers import draw_geometries
 
 __all__ = ["draw_3d_dataset"]
 
 
 # %% Visualization functions
 def draw_3d_dataset(
-    paths: List[Union[np.ndarray, List[np.ndarray]]],
-    colors: List[Union[np.ndarray, List[np.ndarray]]],
+    paths: Union[List[Union[np.ndarray, List[np.ndarray]]], np.ndarray],
+    colors: Union[List[Union[np.ndarray, List[np.ndarray]]], np.ndarray],
     cmap: str = "viridis",
-    scale_factor: float = 1.0,
+    scalebar: Union[float, int, bool] = False,
+    size: float = 1.0,
     magnitude: Union[str, float] = "auto",
+    draw_faces: bool = False,
 ) -> None:
     """Draw multiple 3D paths using open3d visualization. Each path is visualized as a lineset connecting (point)-meshes, with optional coloring and scaling.
 
     Args:
-        paths (List[Union[np.ndarray, List[np.ndarray]]]): The 3D paths to visualize.
-        colors (List[Union[np.ndarray, List[np.ndarray]]]): The colors for the paths.
+        paths (Union[List[Union[np.ndarray, List[np.ndarray]]], np.ndarray]): The 3D paths to visualize.
+        colors (Union[List[Union[np.ndarray, List[np.ndarray]]], np.ndarray]): The colors for the paths.
         cmap (str, optional): The colormap for the paths. Defaults to "viridis".
-        scale_factor (float, optional): The scale factor for the paths. Defaults to 1.0.
+        size (float, optional): The scale factor for the paths. Defaults to 1.0.
         magnitude (Union[str, float], optional): The magnitude for the paths. Defaults to "auto".
+        draw_faces (bool, optional): Whether to draw faces for the paths. Defaults to False.
 
     Returns:
         None: This function does not return anything. It opens an interactive visualization window.
@@ -37,8 +41,9 @@ def draw_3d_dataset(
             path=path,
             color=color,
             cmap=cmap,
-            scale_factor=scale_factor,
+            size=size,
             magnitude=magnitude,
+            draw_faces=draw_faces,
         )
         for path, color in zip(paths, colors)
     ]
@@ -49,7 +54,7 @@ def draw_3d_dataset(
         geometries.extend(path_3d.to_list())
 
     # visualize the base wireframe and the path linesets together
-    o3d.visualization.draw_geometries(  # type: ignore
+    draw_geometries(
         geometries,
-        window_name="Dataset Visualization",
+        scalebar=scalebar,
     )

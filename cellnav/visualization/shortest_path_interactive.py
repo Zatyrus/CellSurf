@@ -7,6 +7,7 @@ from copy import copy
 ## custom dependencies
 from cellnav.core.framework.surface_graph import SurfaceGraph
 from cellnav.core.helpers.geo_shape_helper import GeoShapeHelper
+from cellnav.core.helpers.estimate_magnitude_from_data import estimate_magnitude_from_data
 
 __all__ = ["shortest_path_interactive"]
 
@@ -28,7 +29,7 @@ def shortest_path_interactive(graph: SurfaceGraph, source: int, target: int) -> 
     # select base wireframe for visualization
     wireframe = copy(graph.edges)
     path = graph.get_shortest_path(source, target)
-    approximate_scaler = estimate_magnitude(graph, scale_adjust=-2)
+    approximate_scaler = np.power(10, estimate_magnitude_from_data(graph.vertices.get_points()) - 2)
 
     # create lineset for the path
     path_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
@@ -65,23 +66,4 @@ def shortest_path_interactive(graph: SurfaceGraph, source: int, target: int) -> 
         [path_lineset, wireframe.geometry, start_sphere, end_sphere]
         + intermediate_nodes,
         window_name=f"Shortest Path from Node {source} to Node {target}",
-    )
-
-
-# %% Helper functions
-def estimate_magnitude(graph: SurfaceGraph, scale_adjust: int = -2) -> float:
-    """Estimate the magnitude scaler for visualization based on the maximum distance between vertices in the graph.
-    This helps to set an appropriate scale for visual elements like spheres and lines in the 3D visualization.
-
-    Args:
-        graph (SurfaceGraph): The surface graph for which to estimate the magnitude scaler.
-        scale_adjust (int, optional): The adjustment factor for the scale. Defaults to -2.
-
-    Returns:
-        float: The estimated magnitude scaler.
-    """
-    return np.power(
-        10,
-        np.floor(np.log10(np.diff(graph.vertices.get_points(), axis=0).max()))
-        + scale_adjust,
     )

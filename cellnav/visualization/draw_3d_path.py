@@ -6,6 +6,7 @@ from typing import List, Union
 
 ## custom dependencies
 from cellnav.util.make_3d_path import make_3d_path
+from cellnav.core.helpers import draw_geometries
 
 __all__ = ["draw_3d_path"]
 
@@ -15,8 +16,10 @@ def draw_3d_path(
     path: Union[np.ndarray, List[np.ndarray]],
     color: Union[np.ndarray, List[np.ndarray]],
     cmap: str = "viridis",
-    scale_factor: float = 1.0,
+    scalebar: Union[float, int, bool] = False,
+    size: float = 1.0,
     magnitude: Union[str, float] = "auto",
+    draw_faces: bool = False,
 ) -> None:
     """Draw a 3D path using open3d visualization. The path is visualized as a lineset connecting (point)-meshes, with optional coloring and scaling.
 
@@ -24,9 +27,11 @@ def draw_3d_path(
         path (Union[np.ndarray, List[np.ndarray]]): The 3D path to visualize.
         color (Union[np.ndarray, List[np.ndarray]]): The colors for the path.
         cmap (str, optional): The colormap for the path. Defaults to "viridis".
-        scale_factor (float, optional): The scale factor for the path. Defaults to 1.0.
+        size (float, optional): The scale factor for the path. Defaults to 1.0.
         magnitude (Union[str, float], optional): The magnitude for the path. Defaults to "auto".
-
+        scalebar (Union[float, int, bool], optional): The scale bar for the visualization. Defaults to False.
+        draw_faces (bool, optional): Whether to draw faces for the path. Defaults to False.
+        
     Returns:
         None: This function does not return anything. It opens an interactive visualization window.
     """
@@ -36,11 +41,12 @@ def draw_3d_path(
         path=path,
         color=color,
         cmap=cmap,
-        scale_factor=scale_factor,
+        size=size,
         magnitude=magnitude,
+        draw_faces=draw_faces,
     )
     # visualize the base wireframe and the path lineset together
-    o3d.visualization.draw_geometries(  # type: ignore
+    draw_geometries(
         path_3d.to_list(),
-        window_name="Path Visualization",
+        scalebar=scalebar,
     )
