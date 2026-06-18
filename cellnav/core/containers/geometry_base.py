@@ -514,27 +514,10 @@ class GeometryBase(ABC):
             GeometryBase: A new geometry object representing the result of the multiplication.
         """
         if isinstance(scaler, (int, float)):
-            scaled_geometry = self._geometry.scale(scaler, center=False)
+            scaled_geometry = deepcopy(self._geometry).scale(scaler, center=self.get_center_of_mass())
             return self.__class__.from_o3d(scaled_geometry)
         else:
             raise ValueError("Can only multiply by a scalar (int or float).")
-
-    def __div__(self, scaler: Union[float, int]) -> "GeometryBase":
-        """
-        Define the division operator for GeometryBase objects.
-        This can be used to apply a transformation (e.g. scaling) to the geometry by dividing it by a scalar or another geometry.
-
-        Args:
-            scaler (Union[float, GeometryBase]): The scalar or geometry to divide this geometry by.
-            
-        Returns:
-            GeometryBase: A new geometry object representing the result of the division.
-        """
-        if isinstance(scaler, (int, float)):
-            scaled_geometry = self._geometry.scale(1 / scaler, center=False)
-            return self.__class__.from_o3d(scaled_geometry)
-        else:
-            raise ValueError("Can only divide by a scalar (int or float).")
     
     def __imul__(self, scaler: Union[float, int]) -> "GeometryBase":
         """
@@ -548,27 +531,10 @@ class GeometryBase(ABC):
             GeometryBase: The modified geometry object after the multiplication.
         """
         if isinstance(scaler, (int, float)):
-            self._geometry.scale(scaler, center=False)
+            self._geometry.scale(scaler, center=self.get_center_of_mass())
             return self
         else:
             raise ValueError("Can only multiply by a scalar (int or float).")
-    
-    def __idiv__(self, scaler: Union[float, int]) -> "GeometryBase":
-        """
-        Define the in-place division operator for GeometryBase objects.
-        This can be used to apply a transformation (e.g. scaling) to the geometry in place by dividing it by a scalar or another geometry.
-
-        Args:
-            scaler (Union[float, GeometryBase]): The scalar or geometry to divide this geometry by.
-            
-        Returns:
-            GeometryBase: The modified geometry object after the division.
-        """        
-        if isinstance(scaler, (int, float)):
-            self._geometry.scale(1 / scaler, center=False)
-            return self
-        else:
-            raise ValueError("Can only divide by a scalar (int or float).")
         
     def __eq__(self, other: "GeometryBase") -> bool:
         """
@@ -586,7 +552,15 @@ class GeometryBase(ABC):
         """
         if not isinstance(other, GeometryBase):
             raise NotImplementedError("Can only compare with another GeometryBase object.")
-        return self._geometry == other._geometry
+        match (type(self._geometry), type(other._geometry)):
+            case (o3d.geometry.PointCloud, o3d.geometry.PointCloud):
+                return self._geometry.points == other._geometry.points and self._geometry.colors == other._geometry.colors
+            case (o3d.geometry.TriangleMesh, o3d.geometry.TriangleMesh):
+                return self._geometry.vertices == other._geometry.vertices and self._geometry.triangles == other._geometry.triangles and self._geometry.colors == other._geometry.colors
+            case (o3d.geometry.LineSet, o3d.geometry.LineSet):
+                return self._geometry.points == other._geometry.points and self._geometry.lines == other._geometry.lines and self._geometry.colors == other._geometry.colors
+            case _:
+                raise TypeError("Cannot compare geometries of different types.")
 
     # %% Properties
     @property
