@@ -362,8 +362,6 @@ class SurfaceMesh(GeometryBase):
     def __sub__(self, other: "SurfaceMesh") -> "SurfaceMesh":
         if not isinstance(other, SurfaceMesh):
             raise TypeError(f"Unsupported operand type(s) for -: 'SurfaceMesh' and '{type(other).__name__}'")
-        
-        # REQUIRES TESTING - Open3D does not support direct subtraction of meshes, so this is a placeholder for a more complex operation that would need to be implemented.
         raise NotImplementedError("Subtraction of SurfaceMesh instances is not currently implemented.")
     
     @overrides
@@ -377,8 +375,6 @@ class SurfaceMesh(GeometryBase):
     def __isub__(self, other: "SurfaceMesh") -> "SurfaceMesh":
         if not isinstance(other, SurfaceMesh):
             raise TypeError(f"Unsupported operand type(s) for -=: 'SurfaceMesh' and '{type(other).__name__}'")
-        
-        # REQUIRES TESTING - Open3D does not support direct subtraction of meshes, so this is a placeholder for a more complex operation that would need to be implemented.
         raise NotImplementedError("In-place subtraction of SurfaceMesh instances is not currently implemented.")
 
     # %% Properties
