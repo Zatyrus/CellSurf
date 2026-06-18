@@ -4,7 +4,7 @@ import open3d as o3d
 from typing import List, Union
 
 # %% Wrapper function for open3d visualization with optional scalebar
-def draw_geometries(geometries: List[Union[o3d.geometry.TriangleMesh, o3d.geometry.PointCloud, o3d.geometry.LineSet]], scalebar: Union[float, int, bool] = False) -> None:
+def draw_geometries(geometries: List[Union[o3d.geometry.TriangleMesh, o3d.geometry.PointCloud, o3d.geometry.LineSet]], scalebar: Union[float, int, bool] = False, window_name: str = "Interactive Visualization - Editable Mode Disabled") -> None:
     """
     Draw a list of geometries using Open3D's visualization capabilities. 
     Optionally, a scale bar (coordinate frame) can be added to the visualization for reference.
@@ -28,4 +28,4 @@ def draw_geometries(geometries: List[Union[o3d.geometry.TriangleMesh, o3d.geomet
         # add the scalebar to the geometries list for visualization
         geometries.append(coordinate_frame)
         
-    o3d.visualization.draw_geometries(geometries) # type: ignore
+    o3d.visualization.draw_geometries(geometries, window_name=window_name) # type: ignore
