@@ -17,7 +17,7 @@ def draw_3d_dataset(
     colors: Union[List[Union[np.ndarray, List[np.ndarray]]], np.ndarray],
     cmap: str = "viridis",
     scalebar: Union[float, int, bool] = False,
-    size: float = 1.0,
+    size: float = 3.0,
     magnitude: Union[str, float] = "auto",
     draw_faces: bool = False,
 ) -> None:
@@ -27,7 +27,7 @@ def draw_3d_dataset(
         paths (Union[List[Union[np.ndarray, List[np.ndarray]]], np.ndarray]): The 3D paths to visualize.
         colors (Union[List[Union[np.ndarray, List[np.ndarray]]], np.ndarray]): The colors for the paths.
         cmap (str, optional): The colormap for the paths. Defaults to "viridis".
-        size (float, optional): The scale factor for the paths. Defaults to 1.0.
+        size (float, optional): The scale factor for the paths. Defaults to 3.0.
         magnitude (Union[str, float], optional): The magnitude for the paths. Defaults to "auto".
         draw_faces (bool, optional): Whether to draw faces for the paths. Defaults to False.
 
