@@ -24,6 +24,7 @@ def make_3d_path(
     size: float = 3.0,
     magnitude: Union[str, float] = "auto",
     draw_faces: bool = False,
+    auto_scale_color: bool = True,
 ) -> Path3D:
     """
     Build a Path3D object for visualization based on the given 3D path and color information.
@@ -36,6 +37,7 @@ def make_3d_path(
         size (float, optional): The scale factor for the path. Defaults to 3.0.
         magnitude (Union[str, float], optional): The magnitude for the path. Defaults to "auto".
         draw_faces (bool, optional): Whether to draw faces for the path. Defaults to False.
+        auto_scale_color (bool, optional): Whether to automatically scale the color values. Defaults to True.
 
     Raises:
         ValueError: If the color array has an invalid shape.
@@ -65,10 +67,13 @@ def make_3d_path(
         raise ValueError(
             "Color must be either a single RGB color or an array of colors with the same length as the path."
         )
-    if color.ndim == 1 and color.shape[0] == len(path):
+    elif color.ndim == 1 and color.shape[0] == len(path):
         # apply colormap to the color array
-        norm = matplotlib.colors.Normalize(vmin=np.min(color), vmax=np.max(color))
-        rgb_array: np.ndarray = cmap(norm(color))[:, :3]
+        if auto_scale_color:
+            norm = matplotlib.colors.Normalize(vmin=np.min(color), vmax=np.max(color))
+            rgb_array: np.ndarray = cmap(norm(color))[:, :3]
+        else:
+            rgb_array: np.ndarray = cmap(color)[:, :3]
 
     if isinstance(magnitude, str) and magnitude == "auto":
         magnitude = (

@@ -19,6 +19,7 @@ def draw_3d_path(
     size: float = 3.0,
     magnitude: Union[str, float] = "auto",
     draw_faces: bool = False,
+    auto_scale_color: bool = True,
 ) -> None:
     """Draw a 3D path using open3d visualization. The path is visualized as a lineset connecting (point)-meshes, with optional coloring and scaling.
 
@@ -30,6 +31,7 @@ def draw_3d_path(
         magnitude (Union[str, float], optional): The magnitude for the path. Defaults to "auto".
         scalebar (Union[float, int, bool], optional): The scale bar for the visualization. Defaults to False.
         draw_faces (bool, optional): Whether to draw faces for the path. Defaults to False.
+        auto_scale_color (bool, optional): Whether to automatically scale the color values. Defaults to True.
 
     Returns:
         None: This function does not return anything. It opens an interactive visualization window.
@@ -43,6 +45,7 @@ def draw_3d_path(
         size=size,
         magnitude=magnitude,
         draw_faces=draw_faces,
+        auto_scale_color=auto_scale_color,
     )
     # visualize the base wireframe and the path lineset together
     draw_geometries(

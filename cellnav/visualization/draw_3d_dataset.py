@@ -19,6 +19,7 @@ def draw_3d_dataset(
     size: float = 3.0,
     magnitude: Union[str, float] = "auto",
     draw_faces: bool = False,
+    auto_scale_color: bool = True,
 ) -> None:
     """Draw multiple 3D paths using open3d visualization. Each path is visualized as a lineset connecting (point)-meshes, with optional coloring and scaling.
 
@@ -29,6 +30,7 @@ def draw_3d_dataset(
         size (float, optional): The scale factor for the paths. Defaults to 3.0.
         magnitude (Union[str, float], optional): The magnitude for the paths. Defaults to "auto".
         draw_faces (bool, optional): Whether to draw faces for the paths. Defaults to False.
+        auto_scale_color (bool, optional): Whether to automatically scale the color values. Defaults to True.
 
     Returns:
         None: This function does not return anything. It opens an interactive visualization window.
@@ -43,6 +45,7 @@ def draw_3d_dataset(
             size=size,
             magnitude=magnitude,
             draw_faces=draw_faces,
+            auto_scale_color=auto_scale_color,
         )
         for path, color in zip(paths, colors)
     ]
