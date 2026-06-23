@@ -312,7 +312,7 @@ class PointCloud(GeometryBase):
         nb_points: int = 20,
         std_ratio: float = 2.0,
         inplace: bool = True,
-        display_result: bool = True,
+        display_result: bool = False,
     ) -> "PointCloud":
         """Remove outliers from the point cloud using statistical analysis.
 
@@ -320,7 +320,7 @@ class PointCloud(GeometryBase):
             nb_points (int, optional): Number of neighboring points to consider. Defaults to 20.
             std_ratio (float, optional): Standard deviation ratio for outlier detection. Defaults to 2.0.
             inplace (bool, optional): If True, modify the point cloud in place. If False, return a new PointCloud object with the filtered points. Defaults to True.
-            display_result (bool, optional): If True, display the inliers and outliers in different colors. Defaults to True.
+            display_result (bool, optional): If True, display the inliers and outliers in different colors. Defaults to False.
 
         Returns:
             PointCloud: Either the modified point cloud (if inplace=True) or a new PointCloud object with the filtered points (if inplace=False).
@@ -345,7 +345,7 @@ class PointCloud(GeometryBase):
         nb_points: int = 16,
         radius: float = 0.05,
         inplace: bool = True,
-        display_result: bool = True,
+        display_result: bool = False,
     ) -> "PointCloud":
         """
         Remove outliers from the point cloud based on a radius criterion.
@@ -355,7 +355,7 @@ class PointCloud(GeometryBase):
             nb_points (int, optional): Number of neighboring points to consider. Defaults to 16.
             radius (float, optional): Radius within which to look for neighbors. Defaults to 0.05.
             inplace (bool, optional): If True, modify the point cloud in place. If False, return a new PointCloud object with the filtered points. Defaults to True.
-            display_result (bool, optional): If True, display the inliers and outliers in different colors. Defaults to True.
+            display_result (bool, optional): If True, display the inliers and outliers in different colors. Defaults to False.
 
         Returns:
             PointCloud: Either the modified point cloud (if inplace=True) or a new PointCloud object with the filtered points (if inplace=False).
