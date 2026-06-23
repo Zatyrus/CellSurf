@@ -1,4 +1,5 @@
 ## dependencies
+import os
 import sys
 import numpy as np
 import open3d as o3d
@@ -886,7 +887,9 @@ class SurfaceGraph:
 
     # %% I/O
     def save(self, file_path: Optional[str] = None, compress: bool = True) -> None:
-        if not file_path:
+        if file_path is None or not os.path.isdir(
+            os.path.dirname(os.path.abspath(file_path))
+        ):
             if pyfd is not None:
                 file_path = pyfd.call_save_as_file(
                     defaultextension=".npz",
@@ -914,12 +917,12 @@ class SurfaceGraph:
 
         # save npz
         if compress:
-            np.savez_compressed(file_path, **to_npz)
+            np.savez_compressed(os.path.abspath(file_path), **to_npz)
         else:
-            np.savez(file_path, **to_npz)
+            np.savez(os.path.abspath(file_path), **to_npz)
 
     def load(self, file_path: Optional[str] = None) -> None:
-        if not file_path:
+        if file_path is None or not os.path.isfile(os.path.abspath(file_path)):
             if pyfd is not None:
                 file_path = pyfd.call_file(
                     title="Select Surface Mesh NPZ File",
@@ -934,7 +937,7 @@ class SurfaceGraph:
             raise ValueError("Invalid file type. Please select a .npz file.")
 
         # load npz
-        loaded = np.load(file_path, allow_pickle=True)
+        loaded = np.load(os.path.abspath(file_path), allow_pickle=True)
 
         # unpack npz
         self._vertices = PointCloud.from_dict(loaded["vertices"].item())

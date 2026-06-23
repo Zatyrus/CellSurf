@@ -42,7 +42,7 @@ class PointCloud(GeometryBase):
     @classmethod
     @overrides
     def from_ply(cls, file_path: Optional[str] = None, **kwargs) -> "PointCloud":
-        if file_path is None or not os.path.isfile(file_path):
+        if file_path is None or not os.path.isfile(os.path.abspath(file_path)):
             if pyfd is None:
                 raise RuntimeError(
                     "File dialog is only supported on Windows. Please provide a file path."
@@ -54,7 +54,7 @@ class PointCloud(GeometryBase):
             if file_path is None:
                 raise ValueError("No file selected. Please provide a valid file path.")
 
-        point_cloud = o3d.io.read_point_cloud(file_path)
+        point_cloud = o3d.io.read_point_cloud(os.path.abspath(file_path))
         return cls(geometry=point_cloud, **kwargs)
 
     @classmethod
@@ -656,7 +656,9 @@ class PointCloud(GeometryBase):
     # %% IO
     @overrides
     def save(self, file_path: Optional[str] = None) -> None:
-        if file_path is None or not os.path.isdir(os.path.dirname(file_path)):
+        if file_path is None or not os.path.isdir(
+            os.path.dirname(os.path.abspath(file_path))
+        ):
             if pyfd is None:
                 raise RuntimeError(
                     "File dialog is only supported on Windows. Please provide a file path."
@@ -670,11 +672,11 @@ class PointCloud(GeometryBase):
             if file_path is None:
                 raise ValueError("No file selected. Please provide a valid file path.")
 
-        o3d.io.write_point_cloud(file_path, self._geometry)
+        o3d.io.write_point_cloud(os.path.abspath(file_path), self._geometry)
 
     @overrides
     def load(self, file_path: Optional[str] = None) -> None:
-        if file_path is None or not os.path.isfile(file_path):
+        if file_path is None or not os.path.isfile(os.path.abspath(file_path)):
             if pyfd is None:
                 raise RuntimeError(
                     "File dialog is only supported on Windows. Please provide a file path."
@@ -686,7 +688,7 @@ class PointCloud(GeometryBase):
             if file_path is None:
                 raise ValueError("No file selected. Please provide a valid file path.")
 
-        self._geometry = o3d.io.read_point_cloud(file_path)
+        self._geometry = o3d.io.read_point_cloud(os.path.abspath(file_path))
 
     @overrides
     def to_dict(self) -> Dict[str, Optional[Any]]:
