@@ -7,7 +7,8 @@ import matplotlib.colors
 from typing import List, Union
 
 ## custom dependencies
-from cellnav.core.containers.path_3d import Path3D
+from cellnav.core.containers.path_3d_light import Path3dLight
+from cellnav.core.containers.path_3d_rendered import Path3dRendered
 from cellnav.core.helpers.geo_shape_helper import GeoShapeHelper
 from cellnav.core.helpers.estimate_magnitude_from_data import (
     estimate_magnitude_from_data,
@@ -25,7 +26,7 @@ def make_3d_path(
     magnitude: Union[str, float] = "auto",
     draw_faces: bool = False,
     auto_scale_color: bool = True,
-) -> Path3D:
+) -> Union[Path3dLight, Path3dRendered]:
     """
     Build a Path3D object for visualization based on the given 3D path and color information.
     The path is visualized as a lineset connecting (point)-meshes, with optional coloring and scaling.
@@ -36,14 +37,14 @@ def make_3d_path(
         cmap (Union[str, matplotlib.colors.Colormap], optional): The colormap for the path. Defaults to "viridis".
         size (float, optional): The scale factor for the path. Defaults to 3.0.
         magnitude (Union[str, float], optional): The magnitude for the path. Defaults to "auto".
-        draw_faces (bool, optional): Whether to draw faces for the path. Defaults to False.
+        draw_faces (bool, optional): Whether to represent the vertices of the path as spheres or points. Defaults to False.
         auto_scale_color (bool, optional): Whether to automatically scale the color values. Defaults to True.
 
     Raises:
         ValueError: If the color array has an invalid shape.
 
     Returns:
-        Path3D: The constructed 3D path object.
+        Union[Path3dLight, Path3dRendered]: The constructed 3D path object.
     """
 
     ## generate 3D visualization with open 3d linesets
@@ -85,40 +86,65 @@ def make_3d_path(
     path_edges = [(i, i + 1) for i in range(len(path) - 1)]
     path_lineset = GeoShapeHelper.generate_lineset_from_edges(path, path_edges)
 
-    # create spheres for the start and end nodes
-    start_sphere = GeoShapeHelper.generate_icosahedron_on_point(
-        path[0],
-        radius=3 * scale,
-        color=rgb_array[0],  # type: ignore
-        make_line=not draw_faces,
-    )
-    end_sphere = GeoShapeHelper.generate_icosahedron_on_point(
-        path[-1],
-        radius=3 * scale,
-        color=rgb_array[-1],  # type: ignore
-        make_line=not draw_faces,
-    )
-
-    # add smaller spheres for the intermediate nodes in the path
-    intermediate_nodes = []
-    for node in range(1, len(path) - 1):
-        sphere = GeoShapeHelper.generate_sphere_on_point(
-            path[node],
-            radius=2 * scale,
-            color=rgb_array[node],  # type: ignore
-            make_line=not draw_faces,
-        )  # red for intermediate nodes
-        intermediate_nodes.append(sphere)
-
     # color the path lineset
     path_lineset.colors = o3d.utility.Vector3dVector(
         [rgb_array[i] for i in range(len(path_lineset.lines))]  # type: ignore
     )
 
-    # return the 3D path container
-    return Path3D(
-        edges=path_lineset,
-        start_point=start_sphere,
-        end_point=end_sphere,
-        intermediate_points=intermediate_nodes,
-    )
+    if draw_faces:
+        # create spheres for the start and end nodes
+        start = GeoShapeHelper.generate_icosahedron_on_point(
+            path[0],
+            radius=3 * scale,
+            color=rgb_array[0],  # type: ignore
+            make_line=False,  # represent as spheres
+        )
+        stop = GeoShapeHelper.generate_icosahedron_on_point(
+            path[-1],
+            radius=3 * scale,
+            color=rgb_array[-1],  # type: ignore
+            make_line=False,  # represent as spheres
+        )
+
+        # add smaller spheres for the intermediate nodes in the path
+        intermediate = []
+        for node in range(1, len(path) - 1):
+            sphere = GeoShapeHelper.generate_sphere_on_point(
+                path[node],
+                radius=2 * scale,
+                color=rgb_array[node],  # type: ignore
+                make_line=False,  # represent as spheres
+            )  # red for intermediate nodes
+            intermediate.append(sphere)
+
+        # return rendered Path3D object
+        return Path3dRendered(
+            edges=path_lineset,
+            start=start,
+            stop=stop,
+            intermediary=intermediate,
+        )
+
+    else:
+        # make start
+        start = o3d.geometry.PointCloud()
+        start.points = o3d.utility.Vector3dVector([path[0]])
+        start.colors = o3d.utility.Vector3dVector([rgb_array[0]])  # type: ignore
+
+        # make stop
+        stop = o3d.geometry.PointCloud()
+        stop.points = o3d.utility.Vector3dVector([path[-1]])
+        stop.colors = o3d.utility.Vector3dVector([rgb_array[-1]])  # type: ignore
+
+        # make intermediate nodes
+        intermediate = o3d.geometry.PointCloud()
+        intermediate.points = o3d.utility.Vector3dVector(path[1:-1])
+        intermediate.colors = o3d.utility.Vector3dVector(rgb_array[1:-1])  # type: ignore
+
+        # return lightweight Path3D object
+        return Path3dLight(
+            edges=path_lineset,
+            start=start,
+            stop=stop,
+            intermediary=intermediate,
+        )
